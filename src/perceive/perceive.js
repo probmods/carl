@@ -1,43 +1,52 @@
-const http = require('http');
+const _ = require('lodash');
+const bodyParser = require('body-parser');
+const express = require('express');
+const sendPostRequest = require('request').post;
 
-const hostname = '127.0.0.1';
+const app = express();
 const port = 3001;
 
 
-function serverError(response, msg) {
-  console.error(msg);
-  response.statusCode = 500;
-  response.setHeader('Content-Type', 'text/plain');
-  response.end(msg);
-  return response;
+function failure(response, msg) {
+  const message = `[perceive] ${msg}`;
+  console.error(message);
+  return response.status(500).send(message);  
+}
+
+function success(response, msg) {
+  const message = `[perceive] ${msg}`;
+  console.log(message);
+  return response.send(message);    
 }
 
 
-const server = http.createServer((request, response) => {
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-  if (request.method !== 'POST') {
-    const msg = `[perceive] got non-POST request: ${request.method}`;
-    return serverError(response, msg);
+
+app.post('/', (request, response) => {
+  if (!request.body) {
+    return failure(response, 'need post request body');
   }
-
-  var body = '';
-
-  request.on('data', function (data) {
-    body += data;
-    if (body.length > 1e6) {
-      request.connection.destroy();
+  if (!request.body.uid) {
+    return failure(response, 'need uid');
+  }
+  // Send data to store
+  const postData = _.assign({}, request.body, { collection: 'userData' });
+  sendPostRequest(
+    'http://localhost:4000/db/insert',
+    { json: postData },
+    (error, res, body) => {
+      if (!error && res.statusCode === 200) {
+        return success(response, `sent data to store: ${JSON.stringify(request.body)}`);
+      } else {
+        return failure(response, `error sending data to store: ${error} ${body}`);
+      }
     }
-  });
-
-  request.on('end', function () {
-    const content = JSON.parse(body);  // make robust
-    console.log(`[perceive] got content: ${body}`);
-    response.statusCode = 200;
-    response.setHeader('Content-Type', 'text/plain');
-    response.end(`Got content: ${body}\n`);
-  });
+  );
 });
 
-server.listen(port, hostname, () => {
-  console.log(`[perceive] running at http://${hostname}:${port}/`);
+
+app.listen(port, () => {
+  console.log(`[perceive] running at http://localhost:${port}/`);
 });
