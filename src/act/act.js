@@ -2,8 +2,31 @@
 const http = require('http')
 const _ = require('underscore')
 const port = 3001
+var sg = require('sendgrid')(process.env.SENDGRID_API_KEY),
+    sgMail = require('sendgrid').mail;
 
 var CronJob = require('cron').CronJob;
+
+var notify = function(uid, question) {
+
+  var from_email = new sgMail.Email('mail@sampleme.io'),
+      to_email = new sgMail.Email('longouyang@gmail.com'),
+      subject = '[SampleMe]: ' + question,
+      content = new sgMail.Content('text/plain', question),
+      mail = new sgMail.Mail(from_email, subject, to_email, content)
+
+  var request = sg.emptyRequest({
+    method: 'POST',
+    path: '/v3/mail/send',
+    body: mail.toJSON()
+  });
+
+  sg.API(request, function(error, response) {
+    console.log(response.statusCode)
+    console.log(response.body)
+    console.log(response.headers)
+  })
+}
 
 const requestHandler = (request, response) => {
   var url = request.url
@@ -30,13 +53,14 @@ const requestHandler = (request, response) => {
 
     var job = new CronJob({
       cronTime: new Date(params.time),
-      onTick: function() { console.log('asking user ' + params.uid + ' question ' + params.question)  },
+      onTick: function() {
+        console.log('asking user ' + params.uid + ' question ' + params.question);
+        notify(params.uid, params.question)
+      },
       startNow: true, /* Start the job right now */
       timeZone: 'America/Los_Angeles'
     });
   }
-
-
 }
 
 const server = http.createServer(requestHandler)

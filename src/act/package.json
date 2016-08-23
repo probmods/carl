@@ -11,6 +11,7 @@
   "dependencies": {
     "cron": "github:ncb000gt/node-cron",
     "node-cron": "^1.1.1",
+    "sendgrid": "^4.0.1",
     "underscore": "^1.8.3"
   }
 }

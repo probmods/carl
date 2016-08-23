@@ -1,3 +1,9 @@
+to start the server, first make sure you're using node v4, then do:
+
+~~~~
+source sendgrid.env; node act.js
+~~~~
+
 to use, make a get request like this:
 
 ~~~~
