@@ -32,13 +32,16 @@ app.post('/', (request, response) => {
     return failure(response, 'need uid');
   }
   // Send data to store
-  const postData = _.assign({}, request.body, { collection: 'userData' });
+  const postData = _.assign({}, request.body, {
+    collection: 'userData',
+    datetime: new Date()
+  });
   sendPostRequest(
     'http://localhost:4000/db/insert',
     { json: postData },
     (error, res, body) => {
       if (!error && res.statusCode === 200) {
-        return success(response, `sent data to store: ${JSON.stringify(request.body)}`);
+        return success(response, `sent data to store: ${JSON.stringify(postData)}`);
       } else {
         return failure(response, `error sending data to store: ${error} ${body}`);
       }
