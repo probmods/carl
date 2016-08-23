@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "cron": "github:ncb000gt/node-cron",
-    "node-cron": "^1.1.1"
+    "node-cron": "^1.1.1",
+    "underscore": "^1.8.3"
   }
 }
