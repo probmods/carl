@@ -1,3 +1,7 @@
+Requirements:
+
+- Node version 4
+
 Architecture:
 
 - *act*: schedule notifications for new questions
