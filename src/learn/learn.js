@@ -117,7 +117,6 @@ function storeParameters(params, callbacks) {
       }
     }
   );
-  callbacks.success();
 }
 
 function runLearner(model) {
@@ -134,7 +133,7 @@ function runLearner(model) {
               storeParameters(newParams, {
                 success: () => {
                   log('successfully completed learner iteration');
-                  // setTimeout(() => runLearner(model), 1000);
+                  setTimeout(() => runLearner(model), 1000);
                 },
                 failure
               });

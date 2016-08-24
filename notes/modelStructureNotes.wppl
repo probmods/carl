@@ -50,7 +50,7 @@ var predictive = function(latentDist, T) {
 
 //learning params from data
 var oldParams = getTheParamsFromStore()
-var newParams = Optimize({objective: 'ELBo', params: currParams},
+var newParams = Optimize({objective: 'ELBO', params: currParams},
 function(){
   var params = registerParams('global',oldParams)//TODO: need to expose util.registerParams in a simple version that loads in by name.
   var timeStep = makeTimeStep(params)
@@ -61,4 +61,5 @@ function(){
                     person.data, //the observations sequence
                   )})}
 )
-putTheParamsInStore(newParams)//might need to ad.value() them?
+// putTheParamsInStore(newParams)//might need to ad.value() them?
+newParams
