@@ -39,8 +39,8 @@ function registerPerceptHandler() {
       if (!error && res.statusCode === 200) {
         console.log('[decide] successfully registered percept handler');
       } else {
-        console.error(`[decide] error registering percept handler: ${error} ${body}`);
-        setTimeout(2000, registerPerceptHandler);
+        console.error(`[decide] failed to register percept handler, will try again`);
+        setTimeout(registerPerceptHandler, 2000);
       }
     }
   );
@@ -51,10 +51,12 @@ function serve() {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
 
+  registerPerceptHandler();
+
   app.listen(port, () => {
     console.log(`[decide] running at http://localhost:${port}`);
   });
-  
+
 }
 
 if (require.main === module) {
