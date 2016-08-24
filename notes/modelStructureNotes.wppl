@@ -4,21 +4,20 @@
 Some notes on model structure and inference strategy for active agents (especially the sampleme agent).
 
 */
-
+// FIXME: this is backward, because our reduce is right-first. (why??)
 var foldData = function(initDist, timeStep, observations) {
   var init = sample(initDist)
   return reduce(function(x,acc){return acc.push(timeStep(acc[acc.length-1].latent, x))},
                 init, observations)
 }
 
-//globalparams up here?
-var params = ...
-
 //note that observe acts as sample if value is undefined, so this will sample returned obs when input obs is indefined.
-var timeStep = function(prev, obs) {
-  var next = somePredictiveThing(prev, params)
-  obs = observe(Gaussian(someObservationModel(next,params), 1), obs)
-  return {latent: next, obs: obs}
+var makeTimeStep = function(params) {
+  return function(prev, obs) {
+    var next = somePredictiveThing(prev, params)
+    obs = observe(Gaussian(someObservationModel(next,params), 1), obs)
+    return {latent: next, obs: obs}
+  }
 }
 
 
@@ -33,6 +32,7 @@ mapData({data: allPeople},
 
 //updating posterior on local latents for a person given newData, from current latent dist priorLatent
 var postLatent = function(priorLatent,newData){
+  var timeStep = makeTimeStep(getTheParamsFromStore())
   return Infer({method: 'SMC'},
         function(){
           var seq = foldData(priorLatent, timeStep, newData)
@@ -41,6 +41,7 @@ var postLatent = function(priorLatent,newData){
 
 //posterior predictive for next T timesteps... uncertainty estimates for particular questions can be derived similarly
 var predictive = function(latentDist, T) {
+  var timeStep = makeTimeStep(getTheParamsFromStore())
   return Infer({method: 'forward'}, //can use forward because no new data will be used
                 function(){
                   return foldData(latentDist, timeStep, repeat(T,function(){return undefined}))
@@ -48,13 +49,16 @@ var predictive = function(latentDist, T) {
 
 
 //learning params from data
+var oldParams = getTheParamsFromStore()
 var newParams = Optimize({objective: 'ELBo', params: currParams},
 function(){
-  //TODO: how should we register the params to be optimized here?
+  var params = registerParams('global',oldParams)//TODO: need to expose util.registerParams in a simple version that loads in by name.
+  var timeStep = makeTimeStep(params)
   mapData({data: allPeople},
           function(person) {
             foldData(init, //the initial distribution
-                    timeStep, //the update function. TODO: how do we get params into timeStep?
+                    timeStep, //the update function.
                     person.data, //the observations sequence
                   )})}
 )
+putTheParamsInStore(newParams)//might need to ad.value() them?
