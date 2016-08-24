@@ -10,11 +10,12 @@ var CronJob = require('cron').CronJob;
 
 function notify(uid, question) {
 
-  var from_email = new sgMail.Email('mail@sampleme.io'),
-      to_email = new sgMail.Email('longouyang@gmail.com'),
+  var perceiveURL = "file:///Users/rxdh/Repos/sampleme/src/perceive/perceive.html?question=" + question,
+      from_email = new sgMail.Email('mail@sampleme.io'),
+      to_email = new sgMail.Email('hawkrobe@gmail.com'),
       subject = '[SampleMe]: ' + question,
-      content = new sgMail.Content('text/plain', question),
-      mail = new sgMail.Mail(from_email, subject, to_email, content)
+      content = new sgMail.Content('text/plain', perceiveURL),
+      mail = new sgMail.Mail(from_email, subject, to_email, content);
 
   var request = sg.emptyRequest({
     method: 'POST',
@@ -23,23 +24,23 @@ function notify(uid, question) {
   });
 
   sg.API(request, function(error, response) {
-    console.log(response.statusCode)
-    console.log(response.body)
-    console.log(response.headers)
-  })
+    console.log(response.statusCode);
+    console.log(response.body);
+    console.log(response.headers);
+  });
 }
 
 
 function requestHandler(request, response) {
-  var url = request.url
+  var url = request.url;
 
   var urlSplit = url.split("/?");
   if (urlSplit.length == 1) {
-    response.end('no action taken')
+    response.end('no action taken');
   } else {
     var paramsString = _.last(urlSplit),
         params = _.object(_.map(paramsString.split("&"),
-                                    function(s) { return s.split("=") }));
+                                function(s) { return s.split("=") }));
 
     // convert uid and time to integers
     params.uid = parseInt(params.uid);
@@ -57,7 +58,7 @@ function requestHandler(request, response) {
       cronTime: new Date(params.time),
       onTick: function() {
         console.log('[act] asking user ' + params.uid + ' question ' + params.question);
-        notify(params.uid, params.question)
+        notify(params.uid, params.question);
       },
       startNow: true, /* Start the job right now */
       timeZone: 'America/Los_Angeles'
@@ -68,7 +69,7 @@ function requestHandler(request, response) {
 
 function serve() {
   if (process.env.SENDGRID_API_KEY === undefined) {
-    console.error('[act] ERROR: environment key SENDGRID_API_KEY not found; try running "source act/sendgrid.env" first')
+    console.error('[act] ERROR: environment key SENDGRID_API_KEY not found; try running "source act/sendgrid.env" first');
     return
   }
 
