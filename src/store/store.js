@@ -44,8 +44,12 @@ function addFixtures(db) {
   const fixtures = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
   _.forEach(fixtures, (entries, collectionName) => {
     const collection = db.collection(collectionName);
-    console.log(`[store] inserting fixtures into ${collectionName}`);
-    collection.insertMany(entries);
+    collection.count((err, count) => {
+      if (!err && count === 0) {
+        console.log(`[store] inserting fixtures into ${collectionName}`);
+        collection.insertMany(entries);        
+      }
+    });
   });
 }
 
