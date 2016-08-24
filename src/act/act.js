@@ -55,7 +55,7 @@ function requestHandler(request, response) {
     var job = new CronJob({
       cronTime: new Date(params.time),
       onTick: function() {
-        console.log('asking user ' + params.uid + ' question ' + params.question);
+        console.log('[act] asking user ' + params.uid + ' question ' + params.question);
         notify(params.uid, params.question)
       },
       startNow: true, /* Start the job right now */
@@ -70,10 +70,10 @@ function serve() {
 
   server.listen(port, (err) => {
     if (err) {
-      return console.log('something bad happened', err)
+      return console.log('[act] something bad happened', err)
     }
 
-    console.log(`server is listening on ${port}`)
+    console.log(`[act] running at http://localhost:${port}`)
   })
 
 }

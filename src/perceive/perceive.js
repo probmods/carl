@@ -50,7 +50,7 @@ function serve() {
   });
 
   app.listen(port, () => {
-    console.log(`[perceive] running at http://localhost:${port}/`);
+    console.log(`[perceive] running at http://localhost:${port}`);
   });
   
 }

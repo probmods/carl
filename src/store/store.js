@@ -68,7 +68,7 @@ function serve() {
   });
 
   app.listen(port, () => {
-    console.log(`[store] running at http://localhost:${port}/`);
+    console.log(`[store] running at http://localhost:${port}`);
   });
 
 }
