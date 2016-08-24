@@ -15,7 +15,7 @@ const sendPostRequest = require('request').post;
 const app = express();
 const port = 3002;
 
-
+// NOTE: can factor out success/failure 
 function failure(response, msg) {
   const message = `[decide] ${msg}`;
   console.error(message);
@@ -55,7 +55,7 @@ function makeAction(newPercept) {
     questionType: "yes/no",
     questionData: {headerString: "are you a dog?"},
     datetime: notifyTime,
-    user: "user@gmail.com", // replace with uid?
+    user: "hawkrobe@gmail.com", // replace with uid?
     collection: 'actions',
     enacted: false
   };
