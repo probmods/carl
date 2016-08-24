@@ -4,5 +4,9 @@
     {"email": "rxdh@stanford.edu"},
     {"email": "louyang@stanford.edu"},
     {"email": "ngoodman@stanford.edu"}
+  ],
+  "percepts": [
+    {"questionID": 1},
+    {"questionID": 2}
   ]
 }
