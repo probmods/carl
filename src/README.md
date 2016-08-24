@@ -1,3 +1,9 @@
+Run:
+
+- `node main.js`
+- provide data in `perceive/perceive.html`
+- receive notifications by email (address currently fixed in `act/act.js`)
+
 Requirements:
 
 - Node version 4
