@@ -45,6 +45,21 @@ function serve() {
 
   app.post('/register-handler', (request, response) => {
     return failure(response, 'register-handler not implemented yet');
+  app.post('/db/find', (request, response) => {
+    if (!request.body) {
+      return failure(response, '/db/find needs post request body');
+    }
+    const collectionName = request.body.collection;
+    if (!collectionName) {
+      return failure(response, '/db/find needs collection');
+    }
+    const query = request.body.query || {};
+    const projection = request.body.projection;
+    const collection = database.collection(collectionName);
+    console.log(`[store] got request to find in ${collectionName} with query ${JSON.stringify(query)} and projection ${JSON.stringify(projection)}`);
+    collection.find(query, projection).toArray().then((data) => {
+      response.json(data);
+    });
   });
 
   app.post('/db/insert', (request, response) => {
