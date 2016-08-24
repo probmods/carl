@@ -52,8 +52,8 @@ function registerPerceptHandler() {
 function makeAction(newPercept) {
   var notifyTime = new Date();
   return {
-    questionType: "yes/no",
-    questionData: {headerString: "are you a dog?"},
+    questionType: "likert",
+    questionData: {headerString: "how sad are you?"},
     datetime: notifyTime,
     user: "hawkrobe@gmail.com", // replace with uid?
     collection: 'actions',
