@@ -71,9 +71,32 @@ function loadUserData(callbacks) {
 
 function loadParameters(callbacks) {
   clog('reading current model parameters from db');
-  // TODO
-  const parameters = {};
-  callbacks.success(parameters);
+  sendPostRequest(
+    'http://127.0.0.1:4000/db/find',
+    { json: { collection: 'parameters' } },
+    (error, res, body) => {
+      if (!error && res && res.statusCode === 200) {
+        clog('successfully read parameters from db');
+        let newParameters = {};
+        if (body.length === 0) {
+          // no parameters stored yet
+          clog('no parameters found, starting with empty parameter set');
+        } else if (body.length === 1) {
+          if (!body[0].params) {
+            console.error(`[learn] expected params document to have single params key`);
+            callbacks.failure();
+          }
+          newParameters = body[0].params;
+        } else {
+          console.error(`[learn] expected to find single parameters doc, got ${body.length}`);
+          return callbacks.failure();
+        }
+        callbacks.success(newParameters);
+      } else {
+        clog(`failed to read user data from db: ${res ? res.statusCode : ''} ${error}`);
+        callbacks.failure();
+      }
+    });  
 }
 
 function updateParameters(options, callbacks) {
