@@ -1,12 +1,14 @@
 <html>
   <body>
     
-    <h3 id="question"></h3>
-
     <form method="POST" action="http://127.0.0.1:3005">
+      <h3 id="question"></h3>
+      <!-- hacky hidden field so we also get the question in the post request -->
+      <input type="hidden" name="question" id="hidden question" value="">
+      
       <hr>
-      <input type="radio" name="gender" value="male"> Yes 
-      <input type="radio" name="gender" value="female"> No <br>
+      <input type="radio" name="answer" value="yes"> Yes 
+      <input type="radio" name="answer" value="no"> No <br>
       <br>
       Email: <input type="text" name="email" /><br>
       <br>
@@ -28,6 +30,7 @@
     }
     var questionString = getParameterByName("question");
     document.getElementById("question").innerHTML = questionString;
+    document.getElementById("hidden question").value = questionString;
 
     <!-- console.log(questionElement) -->
     <!-- questionElement.innerHTML(question); -->
