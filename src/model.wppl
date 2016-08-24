@@ -6,8 +6,8 @@ Some notes on model structure and inference strategy for active agents (especial
 
 //globalparams up here?
 var params = {
-  mood: {driftRate: 3, observationNoise: 10},
-  prod: {driftRate: 4, observationNoise: 10}
+  mood: {driftRate: 50, observationNoise: 50},
+  prod: {driftRate: 50, observationNoise: 50}
 } ;
 
 var transition = function(prev, params){
@@ -16,20 +16,21 @@ var transition = function(prev, params){
       mood = prev.latent.mood,
       prod = prev.latent.prod;
 
-  var r = {mood: beta(mood * moodDrift, (1 - mood) * moodDrift),
-           prod: beta(prod * prodDrift, (1 - prod) * prodDrift)}
+  var r = {mood: dirichlet(T.mul(mood, moodDrift)),
+           prod: dirichlet(T.mul(prod, prodDrift))}
   return r;
 }
+// // return transition({latent: {mood: Vector([0.8, 0.2]),
+// //                             prod: Vector([0.4, 0.6])}},
+// //                   params)
 
 var moodObservation = function(mood, noise) {
-  return Beta({a: mood * noise,
-               b: (1 - mood) * noise})
+  return Dirichlet({alpha: T.mul(mood, noise)})
 }
 
 
 var prodObservation = function(prod, noise) {
-  return Beta({a: prod * noise,
-               b: (1 - prod) * noise})
+  return Dirichlet({alpha: T.mul(prod, noise)})
 }
 
 //note that observe acts as sample if value is undefined, so this will sample returned obs when input obs is indefined.
@@ -64,15 +65,19 @@ var N = 5000;
 var timeStep = makeTimeStep(params);
 
 //util.seedRNG(3)
-var dist = Infer({method: 'optimize', samples: 5, steps: 1000},
+var dist = Infer({method: 'optimize', samples: 5000, steps: 5000},
       function() {
 
-        var initDist = {latent: {mood: beta(2,2), prod: beta(2,2)}};
-        var seq = foldData(initDist, timeStep, [{mood: 0.2, prod: 0.8},
-                                                {mood: 0.2, prod: 0.8}
-                                               ]);
+        var initDist = {latent: {mood: dirichlet(Vector([1,1])),
+                                 prod: dirichlet(Vector([1,1]))}};
+        var seq = foldData(initDist,
+                           timeStep,
+                           [{mood: Vector([0.2, 0.8]), prod: Vector([0.8, 0.2])},
+                            undefined,
+                            {mood: Vector([0.2, 0.8]), prod: Vector([0.8, 0.2])},
+                           ]);
 
-        return _.last(seq).latent.mood
+        return T.get(_.last(seq).latent.mood, 0)
       })
 
 
