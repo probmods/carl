@@ -1,59 +1,59 @@
 const http = require('http');
-const port = 3004;
 const fs = require('fs');
-var webppl = require('webppl');
+const path = require('path');
+const webppl = require('webppl');
 const sendPostRequest = require('request').post;
 
-// a terrible hack because fs.readFileSync('learner.wppl','utf8')
-// doesn't work from the main runner that starts all five servers
-// TODO: switch to the __dirname method
-var learnerSource = function() {
-  var globalInput = globalStore.input;
-  var globalOutput = {theta: gaussian(globalInput.length, 0.1)};
-  globalStore['output'] = globalOutput;
-};
+const port = 3004;
 
-var clog = function(x) {
+
+function clog(x) {
   console.log('[learn] ' + x);
 }
 
 function requestHandler(request, response) {
-  var url = request.url;
+  const url = request.url;
   // optionally do something (maybe report on inference progress so far?)
 }
 
-var interval = 3 * 1000; // seconds
+const interval = 3 * 1000; // seconds
 
-var code = ['(',learnerSource.toString(),')','()'].join('');
-var compiled = webppl.compile(code, {verbose: true,
-                                     debug: true
-                                    });
+const learnerCodePath = path.join(__dirname, 'learner.wppl');
+const learnerCode = fs.readFileSync(learnerCodePath, 'utf8');
 
-var updateBeliefs = function(responses) {
-  var prepared = webppl.prepare(compiled,
-                                function(s, x) {
-                                  clog(JSON.stringify(s.output))
-                                },
-                                {initialStore: {input: responses}}
-                               )
+
+const compiled = webppl.compile(learnerCode, {
+  verbose: true,
+  debug: true
+});
+
+function updateBeliefs(responses) {
+  const prepared = webppl.prepare(
+    compiled,
+    (s, x) => {
+      clog(JSON.stringify(s.output))
+    },
+    {initialStore: {input: responses}}
+  );
   prepared.run();
 }
 
-var responses = [];
+const responses = [];
 
 setInterval(function() {
   clog('reading from db');
-  sendPostRequest('http://127.0.0.1:4000/db/find',
-                  {json: {collection: 'percepts'}},
-                  (error, res, body) => {
-                    if (!error && res.statusCode === 200) {
-                      clog('db read success');
-                    } else {
-                      clog(`db read error:`);
-                      console.log(res.statusCode);
-                      console.log(error)
-                    }
-                  })
+  sendPostRequest(
+    'http://127.0.0.1:4000/db/find',
+    {json: {collection: 'percepts'}},
+    (error, res, body) => {
+      if (!error && res.statusCode === 200) {
+        clog('db read success');
+      } else {
+        clog(`db read error:`);
+        console.log(res.statusCode);
+        console.log(error)
+      }
+    });
 
   // responses.push(Math.random());
 
@@ -61,7 +61,8 @@ setInterval(function() {
   // updateBeliefs(responses);
 
   // clog('writing to db (TODO)');
-}, interval)
+}, interval);
+
 
 function serve() {
 
@@ -73,9 +74,10 @@ function serve() {
     }
 
     clog(`running at http://localhost:${port}`)
-  })
+  });
 
 }
+
 
 if (require.main === module) {
   serve();
