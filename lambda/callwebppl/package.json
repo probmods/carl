@@ -1,0 +1,5 @@
+{
+  "dependencies" : {
+    "webppl" : "~0.9"
+  }
+}

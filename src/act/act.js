@@ -1,6 +1,7 @@
 const http = require('http');
 const _ = require('underscore');
 const port = 3001;
+
 var sg = require('sendgrid')(process.env.SENDGRID_API_KEY);
 var sgMail = require('sendgrid').mail;
 
@@ -66,6 +67,11 @@ function requestHandler(request, response) {
 
 
 function serve() {
+  if (process.env.SENDGRID_API_KEY === undefined) {
+    console.error('[act] ERROR: API key must be stored in act/sendgrid.env')
+    return
+  }
+
   const server = http.createServer(requestHandler);
 
   server.listen(port, (err) => {
