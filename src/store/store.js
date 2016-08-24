@@ -23,14 +23,19 @@ function success(response, msg) {
 }
 
 
-MongoClient.connect(mongoURL, (err, db) => {
-  if (err) {
-    console.error(`Error connecting to MongoDB: ${err}`);
-  }
-  console.log("[store] connected succesfully to mongo db");
-  database = db;
-});
+function mongoConnectWithRetry(delayInMilliseconds) {
+  MongoClient.connect(mongoURL, (err, db) => {
+    if (err) {
+      console.error(`Error connecting to MongoDB: ${err}`);
+      setTimeout(() => mongoConnectWithRetry(delayInMilliseconds), delayInMilliseconds);
+    } else {
+      console.log("[store] connected succesfully to mongodb");
+      database = db;
+    }
+  });
+}
 
+mongoConnectWithRetry(2000);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
