@@ -1,0 +1,44 @@
+
+
+/*
+Some notes on model structure and inference strategy for active agents (especially the sampleme agent).
+
+*/
+
+var foldData = function(initDist, timeStep, observations) {
+  var init = sample(initDist)
+  return reduce(function(x,acc){return acc.push(timeStep(acc[acc.length-1].latent, x))},
+                init, observations)
+}
+
+//globalparams up here?
+var params = ...
+
+//note that observe acts as sample if value is undefined, so this will sample returned obs when input obs is indefined.
+var timeStep = function(prev, obs) {
+  var next = somePredictiveThing(prev, params)
+  obs = observe(Gaussian(someObservationModel(next,params), 1), obs)
+  return {latent: next, obs: obs}
+}
+
+
+//the overall model structure:
+
+mapData({data: allPeople},
+        function(person) {
+          foldData(init, //the initial distribution
+                   timeStep, //the update function
+                   person.data, //the observations sequence
+         )})
+
+//updating posterior on local latents for a person given newData, from current latent dist priorLatent
+var postLatent = Infer({method: 'SMC'},
+  function(){
+    var seq = foldData(priorLatent, timeStep, newData)
+    return seq[seq.length-1].latent
+  })
+
+//posterior predictive
+
+
+//learning params from data
