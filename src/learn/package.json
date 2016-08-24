@@ -1,0 +1,14 @@
+{
+  "name": "sampleme-learn",
+  "version": "1.0.0",
+  "description": "reads from the database at regular intervals, updates group-level parameters, and writes these to the database",
+  "main": "learn.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "webppl": "github:probmods/webppl#dev"
+  }
+}

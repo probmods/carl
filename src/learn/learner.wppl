@@ -1,0 +1,4 @@
+var globalInput = globalStore.input;
+
+var globalOutput = {theta: gaussian(globalInput.length, 0.1)};
+globalStore['output'] = globalOutput;
