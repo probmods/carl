@@ -78,7 +78,8 @@ function serve() {
     const query = request.body.query || {};
     const projection = request.body.projection;
     const collection = database.collection(collectionName);
-    console.log(`[store] got request to find in ${collectionName} with query ${JSON.stringify(query)} and projection ${JSON.stringify(projection)}`);
+    console.log(`[store] got request to find in ${collectionName} with` +
+                ` query ${JSON.stringify(query)} and projection ${JSON.stringify(projection)}`);
     collection.find(query, projection).toArray().then((data) => {
       response.json(data);
     });
