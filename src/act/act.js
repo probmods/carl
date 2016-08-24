@@ -68,7 +68,7 @@ function requestHandler(request, response) {
 
 function serve() {
   if (process.env.SENDGRID_API_KEY === undefined) {
-    console.error('[act] ERROR: API key must be stored in act/sendgrid.env')
+    console.error('[act] ERROR: environment key SENDGRID_API_KEY not found; try running "source act/sendgrid.env" first')
     return
   }
 
