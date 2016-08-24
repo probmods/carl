@@ -42,25 +42,27 @@ function loadUserData(callbacks) {
 
 function loadParameters(callbacks) {
   log('reading current model parameters from db');
+  const queryData = {
+    collection: 'parameters',
+    query: {
+      '$orderby': { '$natural': -1 },
+      '$query': {} }
+  };
   sendPostRequest(
-    'http://127.0.0.1:4000/db/find',
-    { json: { collection: 'parameters' } },
+    'http://127.0.0.1:4000/db/findOne',
+    { json: queryData },
     (error, res, body) => {
       if (!error && res && res.statusCode === 200) {
         log('successfully read parameters from db');
         let newParameters = {};
-        if (body.length === 0) {
-          // no parameters stored yet
+        if (!body) {
           log('no parameters found, starting with empty parameter set');
-        } else if (body.length === 1) {
-          if (!body[0].params) {
+        } else {
+          if (!body.params) {
             console.error(`[learn] expected params document to have single params key`);
             callbacks.failure();
           }
-          newParameters = body[0].params;
-        } else {
-          console.error(`[learn] expected to find single parameters doc, got ${body.length}`);
-          return callbacks.failure();
+          newParameters = body.params;
         }
         callbacks.success(newParameters);
       } else {
