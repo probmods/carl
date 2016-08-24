@@ -2,12 +2,14 @@ const _ = require('lodash');
 const bodyParser = require('body-parser');
 const express = require('express');
 const mongodb = require('mongodb');
+const sendPostRequest = require('request').post;
 
 const app = express();
 const MongoClient = mongodb.MongoClient;
 const port = 4000;
 const mongoURL = 'mongodb://localhost:27017/sampleme';
 var database = null;
+const handlers = {};
 
 
 function failure(response, msg) {
@@ -44,7 +46,27 @@ function serve() {
   app.use(bodyParser.urlencoded({ extended: true }));
 
   app.post('/register-handler', (request, response) => {
-    return failure(response, 'register-handler not implemented yet');
+    if (!request.body) {
+      return failure(response, 'register-handler needs post request body');
+    }
+    const collection = request.body.collection;
+    const callbackURL = request.body.callbackURL;
+    if (!collection) {
+      return failure(response, 'register-handler needs collection');
+    }
+    if (!callbackURL) {
+      return failure(response, 'register-handler needs callbackURL');
+    }
+    if (handlers[collection] === undefined) {
+      handlers[collection] = [];
+    }
+    if (_.includes(handlers[collection], callbackURL)) {
+      return success(response, `handler for ${collection} already registered: ${callbackURL}`);
+    }
+    handlers[collection].push(callbackURL);
+    return success(response, `added handler for ${collection}: ${callbackURL}`);
+  });
+
   app.post('/db/find', (request, response) => {
     if (!request.body) {
       return failure(response, '/db/find needs post request body');
@@ -66,17 +88,32 @@ function serve() {
     if (!request.body) {
       return failure(response, '/db/insert needs post request body');
     }
-    if (!request.body.collection) {
+    const collectionName = request.body.collection;
+    if (!collectionName) {
       return failure(response, '/db/insert needs collection');
     }
     console.log(`[store] got request to insert into ${request.body.collection}`);  
-    const collection = database.collection(request.body.collection);
+    const collection = database.collection(collectionName);
     const data = _.omit(request.body, ['collection']);
     console.log(`[store] inserting data: ${JSON.stringify(data)}`);
     collection.insert(data, (err, result) => {
       if (err) {
         return failure(response, `error inserting data: ${error}`);
       } else {
+        // Success
+        if (handlers[collectionName]) {
+          // Call handlers that watch this collection
+          handlers[collectionName].forEach((callbackURL) => {
+            console.log(`[store] calling ${collectionName} handler: ${callbackURL}`);
+            sendPostRequest(callbackURL, { json: result }, (error, res, body) => {
+              if (!error && res.statusCode === 200) {
+                console.log(`[store] successfully notified handler ${callbackURL}`);
+              } else {
+                console.error(`[store] error notifying ${callbackURL}: ${error} ${body}`);
+              }
+            });
+          });
+        }
         return success(response, `successfully inserted data. result: ${JSON.stringify(result)}`);
       }
     });  
