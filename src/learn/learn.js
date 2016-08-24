@@ -3,6 +3,14 @@ const port = 3004;
 const fs = require('fs');
 var webppl = require('webppl');
 
+// a terrible hack because fs.readFileSync('learner.wppl','utf8')
+// doesn't work from the main runner that starts all five servers
+var learnerSource = function() {
+  var globalInput = globalStore.input;
+  var globalOutput = {theta: gaussian(globalInput.length, 0.1)};
+  globalStore['output'] = globalOutput;
+};
+
 var clog = function(x) {
   console.log('[learn] ' + x);
 }
@@ -14,7 +22,7 @@ function requestHandler(request, response) {
 
 var interval = 10 * 1000; // seconds
 
-var code = fs.readFileSync('learner.wppl');
+var code = ['(',learnerSource.toString(),')','()'].join('');
 var compiled = webppl.compile(code, {verbose: true,
                                      debug: true
                                     });
