@@ -1,13 +1,13 @@
-
-const http = require('http')
-const _ = require('underscore')
-const port = 3001
-var sg = require('sendgrid')(process.env.SENDGRID_API_KEY),
-    sgMail = require('sendgrid').mail;
+const http = require('http');
+const _ = require('underscore');
+const port = 3001;
+var sg = require('sendgrid')(process.env.SENDGRID_API_KEY);
+var sgMail = require('sendgrid').mail;
 
 var CronJob = require('cron').CronJob;
 
-var notify = function(uid, question) {
+
+function notify(uid, question) {
 
   var from_email = new sgMail.Email('mail@sampleme.io'),
       to_email = new sgMail.Email('longouyang@gmail.com'),
@@ -28,7 +28,8 @@ var notify = function(uid, question) {
   })
 }
 
-const requestHandler = (request, response) => {
+
+function requestHandler(request, response) {
   var url = request.url
 
   var urlSplit = url.split("/?");
@@ -63,12 +64,25 @@ const requestHandler = (request, response) => {
   }
 }
 
-const server = http.createServer(requestHandler)
 
-server.listen(port, (err) => {
-  if (err) {
-    return console.log('something bad happened', err)
-  }
+function serve() {
+  const server = http.createServer(requestHandler);
 
-  console.log(`server is listening on ${port}`)
-})
+  server.listen(port, (err) => {
+    if (err) {
+      return console.log('something bad happened', err)
+    }
+
+    console.log(`server is listening on ${port}`)
+  })
+
+}
+
+
+if (require.main === module) {
+  serve();
+}
+
+module.exports = {
+  serve
+};

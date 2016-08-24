@@ -35,38 +35,48 @@ function mongoConnectWithRetry(delayInMilliseconds) {
   });
 }
 
-mongoConnectWithRetry(2000);
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+function serve() {
+  
+  mongoConnectWithRetry(2000);
 
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post('/register-handler', (request, response) => {
-  return failure(response, 'register-handler not implemented yet');
-});
+  app.post('/register-handler', (request, response) => {
+    return failure(response, 'register-handler not implemented yet');
+  });
 
-
-app.post('/db/insert', (request, response) => {
-  if (!request.body) {
-    return failure(response, '/db/insert needs post request body');
-  }
-  if (!request.body.collection) {
-    return failure(response, '/db/insert needs collection');
-  }
-  console.log(`[store] got request to insert into ${request.body.collection}`);  
-  const collection = database.collection(request.body.collection);
-  const data = _.omit(request.body, ['collection']);
-  console.log(`[store] inserting data: ${JSON.stringify(data)}`);
-  collection.insert(data, (err, result) => {
-    if (err) {
-      return failure(response, `error inserting data: ${error}`);
-    } else {
-      return success(response, `successfully inserted data. result: ${JSON.stringify(result)}`);
+  app.post('/db/insert', (request, response) => {
+    if (!request.body) {
+      return failure(response, '/db/insert needs post request body');
     }
-  });  
-});
+    if (!request.body.collection) {
+      return failure(response, '/db/insert needs collection');
+    }
+    console.log(`[store] got request to insert into ${request.body.collection}`);  
+    const collection = database.collection(request.body.collection);
+    const data = _.omit(request.body, ['collection']);
+    console.log(`[store] inserting data: ${JSON.stringify(data)}`);
+    collection.insert(data, (err, result) => {
+      if (err) {
+        return failure(response, `error inserting data: ${error}`);
+      } else {
+        return success(response, `successfully inserted data. result: ${JSON.stringify(result)}`);
+      }
+    });  
+  });
 
+  app.listen(port, () => {
+    console.log(`[store] running at http://localhost:${port}/`);
+  });
 
-app.listen(port, () => {
-  console.log(`[store] running at http://localhost:${port}/`);
-});
+}
+
+if (require.main === module) {
+  serve();
+}
+
+module.exports = {
+  serve
+};

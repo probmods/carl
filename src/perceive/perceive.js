@@ -19,37 +19,46 @@ function success(response, msg) {
   return response.send(message);    
 }
 
+function serve() {
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
 
-
-app.post('/', (request, response) => {
-  if (!request.body) {
-    return failure(response, 'need post request body');
-  }
-  if (!request.body.uid) {
-    return failure(response, 'need uid');
-  }
-  // Send data to store
-  const postData = _.assign({}, request.body, {
-    collection: 'userData',
-    datetime: new Date()
-  });
-  sendPostRequest(
-    'http://localhost:4000/db/insert',
-    { json: postData },
-    (error, res, body) => {
-      if (!error && res.statusCode === 200) {
-        return success(response, `sent data to store: ${JSON.stringify(postData)}`);
-      } else {
-        return failure(response, `error sending data to store: ${error} ${body}`);
-      }
+  app.post('/', (request, response) => {
+    if (!request.body) {
+      return failure(response, 'need post request body');
     }
-  );
-});
+    if (!request.body.uid) {
+      return failure(response, 'need uid');
+    }
+    // Send data to store
+    const postData = _.assign({}, request.body, {
+      collection: 'userData',
+      datetime: new Date()
+    });
+    sendPostRequest(
+      'http://localhost:4000/db/insert',
+      { json: postData },
+      (error, res, body) => {
+        if (!error && res.statusCode === 200) {
+          return success(response, `sent data to store: ${JSON.stringify(postData)}`);
+        } else {
+          return failure(response, `error sending data to store: ${error} ${body}`);
+        }
+      }
+    );
+  });
 
+  app.listen(port, () => {
+    console.log(`[perceive] running at http://localhost:${port}/`);
+  });
+  
+}
 
-app.listen(port, () => {
-  console.log(`[perceive] running at http://localhost:${port}/`);
-});
+if (require.main === module) {
+  serve();
+}
+
+module.exports = {
+  serve
+};
