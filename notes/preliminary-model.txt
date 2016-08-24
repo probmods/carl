@@ -1,0 +1,19 @@
+tuesday night design of model
+=============================
+
+it's one big model, but when we do local inference ("infer"/"decide"), we are fixing group-level parameters
+
+suppose that we track two things:
+- mood (continuous variable between 0 and 1)
+- discrete variable (task)
+
+imagine a discrete time process.
+mood and task are random walks.
+- rate of change of mood (variance of a 0-mean gaussian)
+- rate of switching task (probability of switching tasks [changing tasks is a uniform draw])
+
+(goal of this design is just to have a dumb model that we can verify actually is sensitive to adding data)
+
+q: what does the data look like?
+- we have two types of questions (mood, task).
+- mood response = datetime + mood, task response = datetime + task multiple choice.
