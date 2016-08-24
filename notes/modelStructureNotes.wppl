@@ -32,13 +32,29 @@ mapData({data: allPeople},
          )})
 
 //updating posterior on local latents for a person given newData, from current latent dist priorLatent
-var postLatent = Infer({method: 'SMC'},
-  function(){
-    var seq = foldData(priorLatent, timeStep, newData)
-    return seq[seq.length-1].latent
-  })
+var postLatent = function(priorLatent,newData){
+  return Infer({method: 'SMC'},
+        function(){
+          var seq = foldData(priorLatent, timeStep, newData)
+          return seq[seq.length-1].latent
+})}
 
-//posterior predictive
+//posterior predictive for next T timesteps... uncertainty estimates for particular questions can be derived similarly
+var predictive = function(latentDist, T) {
+  return Infer({method: 'forward'}, //can use forward because no new data will be used
+                function(){
+                  return foldData(latentDist, timeStep, repeat(T,function(){return undefined}))
+                })}
 
 
 //learning params from data
+var newParams = Optimize({objective: 'ELBo', params: currParams},
+function(){
+  //TODO: how should we register the params to be optimized here?
+  mapData({data: allPeople},
+          function(person) {
+            foldData(init, //the initial distribution
+                    timeStep, //the update function. TODO: how do we get params into timeStep?
+                    person.data, //the observations sequence
+                  )})}
+)
