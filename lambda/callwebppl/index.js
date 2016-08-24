@@ -8,8 +8,7 @@ var webppl = require('webppl');
  *   - program: webPPL program (represented as string)
  */
 exports.handler = (event, context) => {
-  // console.log('Received event:', JSON.stringify(event, null, 2));
   webppl.run("flip(.5)", function(s, x) {
-    return context.done(null, "Returned val:" + x);
+    return context.done(null, "webppl returned:" + x);
   });
 };
