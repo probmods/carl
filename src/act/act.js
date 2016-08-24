@@ -13,10 +13,23 @@ var sgMail = require('sendgrid').mail;
 
 var CronJob = require('cron').CronJob;
 
+// NOTE: can factor out success/failure 
+function failure(response, msg) {
+  const message = `[act] ${msg}`;
+  console.error(message);
+  return response.status(500).send(message);
+}
 
-function notify(uid, question) {
+function success(response, msg) {
+  const message = `[act] ${msg}`;
+  console.log(message);
+  return response.send(message);
+}
 
-  var perceiveURL = "file:///Users/rxdh/Repos/sampleme/src/perceive/perceive.html?question=" + question,
+// TODO: use real user email, server URL
+function notify(user, question) {
+  console.log("notifying");
+  var perceiveURL = "file:///Users/rxdh/Repos/sampleme/src/perceive/perceive.html?question=" + encodeURI(question),
       from_email = new sgMail.Email('mail@sampleme.io'),
       to_email = new sgMail.Email('hawkrobe@gmail.com'),
       subject = '[SampleMe]: ' + question,
@@ -37,39 +50,42 @@ function notify(uid, question) {
 }
 
 
-function requestHandler(request, response) {
-  var url = request.url;
+// function requestHandler(request, response) {
+//   var url = request.url;
 
-  var urlSplit = url.split("/?");
-  if (urlSplit.length == 1) {
-    response.end('no action taken');
-  } else {
-    var paramsString = _.last(urlSplit),
-        params = _.object(_.map(paramsString.split("&"),
-                                function(s) { return s.split("=") }));
+//   var urlSplit = url.split("/?");
+//   if (urlSplit.length == 1) {
+//     response.end('no action taken');
+//   } else {
+//     var paramsString = _.last(urlSplit),
+//         params = _.object(_.map(paramsString.split("&"),
+//                                 function(s) { return s.split("=") }));
 
-    // convert uid and time to integers
-    params.uid = parseInt(params.uid);
-    params.time = parseInt(params.time);
-
-    if (params.delta) {
-      params.delta = parseInt(params.delta);
-      params.time = _.now() + params.delta * 1000;
-    }
-
-    console.log(params);
-    response.end('scheduled notification');
-
-    var job = new CronJob({
-      cronTime: new Date(params.time),
-      onTick: function() {
-        console.log('[act] asking user ' + params.uid + ' question ' + params.question);
-        notify(params.uid, params.question);
-      },
-      startNow: true, /* Start the job right now */
-      timeZone: 'America/Los_Angeles'
-    });
+function scheduleJob(response, params) {
+  // convert uid and time to integers
+  params.question = params.questionData.headerString;
+  
+  if (params.delta) {
+    params.delta = parseInt(params.delta);
+    params.time = _.now() + params.delta * 1000;
   }
+
+  console.log(params);
+
+  success(response, 'successfully scheduled notification');
+
+  // TODO: use real scheduled time
+  var soon = (_.now() + 1000);
+  console.log(soon);
+  var job = new CronJob({
+    cronTime: new Date(soon),
+    onTick: function() {
+      console.log('[act] asking user ' + params.user + ' question ' + params.question);
+      notify(params.user, params.question);
+    },
+    startNow: true, /* Start the job right now */
+    timeZone: 'America/Los_Angeles'
+  });  
 }
 
 // Note: this can be factored out w/ data as a param
@@ -110,8 +126,7 @@ function serve() {
     }
     const newAction = data.ops[0];
     console.log('[act] observed new action', newAction);
-    
-    return success(response, 'successfully received action');
+    scheduleJob(response, newAction);
   });
   
   app.listen(port, (err) => {
