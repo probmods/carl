@@ -16,13 +16,13 @@ const handlers = {};
 function failure(response, msg) {
   const message = `[store] ${msg}`;
   console.error(message);
-  return response.status(500).send(message);  
+  return response.status(500).send(message);
 }
 
 function success(response, msg) {
   const message = `[store] ${msg}`;
   console.log(message);
-  return response.send(message);    
+  return response.send(message);
 }
 
 
@@ -47,14 +47,14 @@ function addFixtures(db) {
     collection.count((err, count) => {
       if (!err && count === 0) {
         console.log(`[store] inserting fixtures into ${collectionName}`);
-        collection.insertMany(entries);        
+        collection.insertMany(entries);
       }
     });
   });
 }
 
 
-function serve() {  
+function serve() {
 
   mongoConnectWithRetry(2000, (database) => {
 
@@ -111,7 +111,7 @@ function serve() {
       if (!collectionName) {
         return failure(response, '/db/insert needs collection');
       }
-      console.log(`[store] got request to insert into ${request.body.collection}`);  
+      console.log(`[store] got request to insert into ${request.body.collection}`);
       const collection = database.collection(collectionName);
       const data = _.omit(request.body, ['collection']);
       console.log(`[store] inserting data: ${JSON.stringify(data)}`);
