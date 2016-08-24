@@ -87,6 +87,24 @@ function serve() {
       return success(response, `added handler for ${collection}: ${callbackURL}`);
     });
 
+    app.post('/db/findOne', (request, response) => {
+      if (!request.body) {
+        return failure(response, '/db/findOne needs post request body');
+      }
+      const collectionName = request.body.collection;
+      if (!collectionName) {
+        return failure(response, '/db/findOne needs collection');
+      }
+      const query = request.body.query || {};
+      const projection = request.body.projection;
+      const collection = database.collection(collectionName);
+      console.log(`[store] got request to findOne in ${collectionName} with` +
+                  ` query ${JSON.stringify(query)} and projection ${JSON.stringify(projection)}`);
+      collection.findOne(query, projection).then((data) => {
+        response.json(data);
+      });
+    });
+
     app.post('/db/find', (request, response) => {
       if (!request.body) {
         return failure(response, '/db/find needs post request body');
