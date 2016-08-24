@@ -1,3 +1,5 @@
+'use strict';
+
 // For now, this watches the `percepts` collection, then does some inference (using
 // parameters from the `parameters` collection), and updates the `actions` collection
 
