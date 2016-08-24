@@ -1,7 +1,11 @@
 'use strict';
 
-const http = require('http');
-const _ = require('underscore');
+const _ = require('lodash');
+const bodyParser = require('body-parser');
+const express = require("express");
+const sendPostRequest = require('request').post;
+
+const app = express();
 const port = 3001;
 
 var sg = require('sendgrid')(process.env.SENDGRID_API_KEY);
@@ -9,13 +13,26 @@ var sgMail = require('sendgrid').mail;
 
 var CronJob = require('cron').CronJob;
 
+// NOTE: can factor out success/failure 
+function failure(response, msg) {
+  const message = `[act] ${msg}`;
+  console.error(message);
+  return response.status(500).send(message);
+}
 
-function notify(uid, question) {
+function success(response, msg) {
+  const message = `[act] ${msg}`;
+  console.log(message);
+  return response.send(message);
+}
 
-  var perceiveURL = "file:///Users/rxdh/Repos/sampleme/src/perceive/perceive.html?question=" + question,
+// TODO: use real user email, server URL
+function notify(params) {
+  console.log("notifying");
+  var perceiveURL = "file:///Users/rxdh/Repos/sampleme/src/perceive/perceive.html?question=" + encodeURI(params.question) + "&type=" + encodeURI(params.type),
       from_email = new sgMail.Email('mail@sampleme.io'),
-      to_email = new sgMail.Email('hawkrobe@gmail.com'),
-      subject = '[SampleMe]: ' + question,
+      to_email = new sgMail.Email("hawkrobe@gmail.com"),
+      subject = '[SampleMe]: ' + params.question,
       content = new sgMail.Content('text/plain', perceiveURL),
       mail = new sgMail.Mail(from_email, subject, to_email, content);
 
@@ -33,41 +50,63 @@ function notify(uid, question) {
 }
 
 
-function requestHandler(request, response) {
-  var url = request.url;
+// function requestHandler(request, response) {
+//   var url = request.url;
 
-  var urlSplit = url.split("/?");
-  if (urlSplit.length == 1) {
-    response.end('no action taken');
-  } else {
-    var paramsString = _.last(urlSplit),
-        params = _.object(_.map(paramsString.split("&"),
-                                function(s) { return s.split("=") }));
+//   var urlSplit = url.split("/?");
+//   if (urlSplit.length == 1) {
+//     response.end('no action taken');
+//   } else {
+//     var paramsString = _.last(urlSplit),
+//         params = _.object(_.map(paramsString.split("&"),
+//                                 function(s) { return s.split("=") }));
 
-    // convert uid and time to integers
-    params.uid = parseInt(params.uid);
-    params.time = parseInt(params.time);
-
-    if (params.delta) {
-      params.delta = parseInt(params.delta);
-      params.time = _.now() + params.delta * 1000;
-    }
-
-    console.log(params);
-    response.end('scheduled notification');
-
-    var job = new CronJob({
-      cronTime: new Date(params.time),
-      onTick: function() {
-        console.log('[act] asking user ' + params.uid + ' question ' + params.question);
-        notify(params.uid, params.question);
-      },
-      startNow: true, /* Start the job right now */
-      timeZone: 'America/Los_Angeles'
-    });
+function scheduleJob(response, params) {
+  // convert uid and time to integers
+  params.question = params.questionData.headerString;
+  params.type = params.questionType;
+  
+  if (params.delta) {
+    params.delta = parseInt(params.delta);
+    params.time = _.now() + params.delta * 1000;
   }
+
+  console.log(params);
+
+  success(response, 'successfully scheduled notification');
+
+  // TODO: use real scheduled time
+  var soon = (_.now() + 1000);
+  var job = new CronJob({
+    cronTime: new Date(soon),
+    onTick: function() {
+      console.log('[act] asking user ' + params.user + ' question ' + params.question);
+      notify(params);
+    },
+    startNow: true, /* Start the job right now */
+    timeZone: 'America/Los_Angeles'
+  });  
 }
 
+// Note: this can be factored out w/ data as a param
+function registerActionHandler() {
+  const data = {
+    callbackURL: 'http://127.0.0.1:3001/handle-action',
+    collection: 'actions'
+  };
+  sendPostRequest(
+    'http://localhost:4000/register-handler',
+    { json: data },
+    (error, res, body) => {
+      if (!error && res.statusCode === 200) {
+        console.log('[act] successfully registered action handler');
+      } else {
+        console.error(`[act] failed to register action handler, will try again`);
+        setTimeout(registerActionHandler, 2000);
+      }
+    }
+  );
+}
 
 function serve() {
   if (process.env.SENDGRID_API_KEY === undefined) {
@@ -75,9 +114,22 @@ function serve() {
     return
   }
 
-  const server = http.createServer(requestHandler);
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
 
-  server.listen(port, (err) => {
+  registerActionHandler();
+  
+  app.post('/handle-action', (request, response) => {
+    const data = request.body;    
+    if (!data.ops || data.ops.length != 1) {
+      return failure(response, "can't handle act: ${data}");
+    }
+    const newAction = data.ops[0];
+    console.log('[act] observed new action', newAction);
+    scheduleJob(response, newAction);
+  });
+  
+  app.listen(port, (err) => {
     if (err) {
       return console.log('[act] something bad happened', err)
     }

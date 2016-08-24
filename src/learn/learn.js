@@ -1,17 +1,27 @@
 'use strict';
 
-const http = require('http');
+const colors = require('colors/safe');
 const fs = require('fs');
+const http = require('http');
 const path = require('path');
-const webppl = require('webppl');
 const sendPostRequest = require('request').post;
+const webppl = require('webppl');
 
 const port = 3004;
 
 
-function log(x) {
-  console.log(`[learn] ${x}`);
+function makeMessage(text) {
+  return colors.green('[learn]') + ` ${text}`;;
 }
+
+function log(text) {
+  console.log(makeMessage(text));
+}
+
+function error(text) {
+  console.log(makeMessage(text));
+}
+
 
 function initLearner() {
   log('compiling webppl code');
@@ -59,7 +69,7 @@ function loadParameters(callbacks) {
           log('no parameters found, starting with empty parameter set');
         } else {
           if (!body.params) {
-            console.error(`[learn] expected params document to have single params key`);
+            error('expected params document to have single params key');
             callbacks.failure();
           }
           newParameters = body.params;
@@ -89,8 +99,24 @@ function updateParameters(options, callbacks) {
 
 function storeParameters(params, callbacks) {
   log('storing new model parameters in db');
-  // TODO
-  callbacks.success();
+  const data = {
+    collection: 'parameters',
+    datetime: new Date(),
+    params
+  };
+  sendPostRequest(
+    'http://localhost:4000/db/insert',
+    { json: data },
+    (error, res, body) => {
+      if (!error && res.statusCode === 200) {
+        log(`stored new params: ${JSON.stringify(data)}`);
+        callbacks.success();
+      } else {
+        log(`error storing new params: ${error} ${body}`);
+        callbacks.failure();
+      }
+    }
+  );
 }
 
 function runLearner(model) {
