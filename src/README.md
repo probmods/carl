@@ -41,4 +41,4 @@ Database collections:
   - `questionID` - id in action collection
   - `answer` - object with structure depending on question type
 - *users*
-  - `name`
+  - `email`
