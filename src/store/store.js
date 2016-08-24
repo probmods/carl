@@ -3,10 +3,11 @@
 const _ = require('lodash');
 const bodyParser = require('body-parser');
 const express = require('express');
-const mongodb = require('mongodb');
-const sendPostRequest = require('request').post;
-const path = require('path');
 const fs = require('fs');
+const mongodb = require('mongodb');
+const path = require('path');
+const sendPostRequest = require('request').post;
+const colors = require('colors/safe');
 
 const app = express();
 const MongoClient = mongodb.MongoClient;
@@ -15,14 +16,26 @@ const mongoURL = 'mongodb://localhost:27017/sampleme';
 const handlers = {};
 
 
-function failure(response, msg) {
-  const message = `[store] ${msg}`;
+function makeMessage(text) {
+  return colors.blue('[store]') + ` ${text}`;;
+}
+
+function log(text) {
+  console.log(makeMessage(text));
+}
+
+function error(text) {
+  console.error(makeMessage(text));
+}
+
+function failure(response, text) {
+  const message = makeMessage(text);
   console.error(message);
   return response.status(500).send(message);
 }
 
-function success(response, msg) {
-  const message = `[store] ${msg}`;
+function success(response, text) {
+  const message = makeMessage(text);
   console.log(message);
   return response.send(message);
 }
@@ -34,7 +47,7 @@ function mongoConnectWithRetry(delayInMilliseconds, callback) {
       console.error(`Error connecting to MongoDB: ${err}`);
       setTimeout(() => mongoConnectWithRetry(delayInMilliseconds, callback), delayInMilliseconds);
     } else {
-      console.log('[store] connected succesfully to mongodb');
+      log('connected succesfully to mongodb');
       callback(db);
     }
   });
@@ -48,7 +61,7 @@ function addFixtures(db) {
     const collection = db.collection(collectionName);
     collection.count((err, count) => {
       if (!err && count === 0) {
-        console.log(`[store] inserting fixtures into ${collectionName}`);
+        log(`inserting fixtures into ${collectionName}`);
         collection.insertMany(entries);
       }
     });
@@ -98,8 +111,8 @@ function serve() {
       const query = request.body.query || {};
       const projection = request.body.projection;
       const collection = database.collection(collectionName);
-      console.log(`[store] got request to findOne in ${collectionName} with` +
-                  ` query ${JSON.stringify(query)} and projection ${JSON.stringify(projection)}`);
+      log(`got request to findOne in ${collectionName} with` +
+          ` query ${JSON.stringify(query)} and projection ${JSON.stringify(projection)}`);
       collection.findOne(query, projection).then((data) => {
         response.json(data);
       });
@@ -116,8 +129,8 @@ function serve() {
       const query = request.body.query || {};
       const projection = request.body.projection;
       const collection = database.collection(collectionName);
-      console.log(`[store] got request to find in ${collectionName} with` +
-                  ` query ${JSON.stringify(query)} and projection ${JSON.stringify(projection)}`);
+      log(`got request to find in ${collectionName} with` +
+          ` query ${JSON.stringify(query)} and projection ${JSON.stringify(projection)}`);
       collection.find(query, projection).toArray().then((data) => {
         response.json(data);
       });
@@ -131,10 +144,10 @@ function serve() {
       if (!collectionName) {
         return failure(response, '/db/insert needs collection');
       }
-      console.log(`[store] got request to insert into ${request.body.collection}`);
+      log(`got request to insert into ${request.body.collection}`);
       const collection = database.collection(collectionName);
       const data = _.omit(request.body, ['collection']);
-      console.log(`[store] inserting data: ${JSON.stringify(data)}`);
+      log(`inserting data: ${JSON.stringify(data)}`);
       collection.insert(data, (err, result) => {
         if (err) {
           return failure(response, `error inserting data: ${error}`);
@@ -143,12 +156,12 @@ function serve() {
           if (handlers[collectionName]) {
             // Call handlers that watch this collection
             handlers[collectionName].forEach((callbackURL) => {
-              console.log(`[store] calling ${collectionName} handler: ${callbackURL}`);
+              log(`calling ${collectionName} handler: ${callbackURL}`);
               sendPostRequest(callbackURL, { json: result }, (error, res, body) => {
                 if (!error && res.statusCode === 200) {
-                  console.log(`[store] successfully notified handler ${callbackURL}`);
+                  log(`successfully notified handler ${callbackURL}`);
                 } else {
-                  console.error(`[store] error notifying ${callbackURL}: ${error} ${body}`);
+                  error(`[store] error notifying ${callbackURL}: ${error} ${body}`);
                 }
               });
             });
@@ -159,7 +172,7 @@ function serve() {
     });
 
     app.listen(port, () => {
-      console.log(`[store] running at http://localhost:${port}`);
+      log(`[store] running at http://localhost:${port}`);
     });
 
   });
