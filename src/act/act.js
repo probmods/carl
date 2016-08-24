@@ -27,12 +27,12 @@ function success(response, msg) {
 }
 
 // TODO: use real user email, server URL
-function notify(user, question) {
+function notify(params) {
   console.log("notifying");
-  var perceiveURL = "file:///Users/rxdh/Repos/sampleme/src/perceive/perceive.html?question=" + encodeURI(question),
+  var perceiveURL = "file:///Users/rxdh/Repos/sampleme/src/perceive/perceive.html?question=" + encodeURI(params.question) + "&type=" + encodeURI(params.type),
       from_email = new sgMail.Email('mail@sampleme.io'),
-      to_email = new sgMail.Email('hawkrobe@gmail.com'),
-      subject = '[SampleMe]: ' + question,
+      to_email = new sgMail.Email("hawkrobe@gmail.com"),
+      subject = '[SampleMe]: ' + params.question,
       content = new sgMail.Content('text/plain', perceiveURL),
       mail = new sgMail.Mail(from_email, subject, to_email, content);
 
@@ -64,6 +64,7 @@ function notify(user, question) {
 function scheduleJob(response, params) {
   // convert uid and time to integers
   params.question = params.questionData.headerString;
+  params.type = params.questionType;
   
   if (params.delta) {
     params.delta = parseInt(params.delta);
@@ -76,12 +77,11 @@ function scheduleJob(response, params) {
 
   // TODO: use real scheduled time
   var soon = (_.now() + 1000);
-  console.log(soon);
   var job = new CronJob({
     cronTime: new Date(soon),
     onTick: function() {
       console.log('[act] asking user ' + params.user + ' question ' + params.question);
-      notify(params.user, params.question);
+      notify(params);
     },
     startNow: true, /* Start the job right now */
     timeZone: 'America/Los_Angeles'
