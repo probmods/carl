@@ -15,7 +15,7 @@ const sendPostRequest = require('request').post;
 const app = express();
 const port = 3002;
 
-
+// NOTE: can factor out success/failure 
 function failure(response, msg) {
   const message = `[decide] ${msg}`;
   console.error(message);
@@ -28,7 +28,7 @@ function success(response, msg) {
   return response.send(message);
 }
 
-
+// Note: this can be factored out w/ data as a param
 function registerPerceptHandler() {
   const data = {
     callbackURL: 'http://127.0.0.1:3002/handle-percept',
@@ -48,14 +48,40 @@ function registerPerceptHandler() {
   );
 }
 
+// TODO: actually use newPercept, do inference 
+function makeAction(newPercept) {
+  var notifyTime = new Date();
+  return {
+    questionType: "yes/no",
+    questionData: {headerString: "are you a dog?"},
+    datetime: notifyTime,
+    user: "hawkrobe@gmail.com", // replace with uid?
+    collection: 'actions',
+    enacted: false
+  };
+};
+
+function sendActionToStore (response, actionInfo) {
+  sendPostRequest(
+    'http://localhost:4000/db/insert',
+    { json: actionInfo },
+    (error, res, body) => {
+      if (!error && res.statusCode === 200) {
+        return success(response, `successfully sent data to store: ${JSON.stringify(actionInfo)}`);
+      } else {
+        return failure(response, `error sending data to store: ${error} ${body}`);
+      }
+    }
+  );
+};
 
 function serve() {
-
+  
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
-
+  
   registerPerceptHandler();
-
+  
   app.post('/handle-percept', (request, response) => {
     const data = request.body;    
     if (!data.ops || data.ops.length != 1) {
@@ -68,7 +94,9 @@ function serve() {
     // 1. retrieve all percepts for user with email given in newPercept
     // 2. condition model on percepts
     // 3. compute new question based on all data points for this user
-    return success(response, 'successfully received percept');
+    var actionInfo = makeAction(newPercept);
+    console.log('[decide] constructed new action', actionInfo);
+    sendActionToStore(response, actionInfo);
   });
 
   app.listen(port, () => {
