@@ -9,7 +9,7 @@ While the API is static and just points to the lambda function, you'll need to r
 First, on the command line, call
 
 ```
-cd lambda/callwebppl
+cd lambda
 make
 ```
 
