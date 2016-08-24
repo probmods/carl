@@ -1,8 +1,36 @@
 <html>
-  <form method="POST" action="http://127.0.0.1:3005">
-    Email: <input type="text" name="email" /><br>
-    Mood: <input type="text" name="mood" /><br>
-    Activity: <input type="text" name="activity" /><br>
-    <input type="submit" value="Submit" />
-  </form>
+  <body>
+    
+    <h3 id="question"></h3>
+
+    <form method="POST" action="http://127.0.0.1:3005">
+      <hr>
+      <input type="radio" name="gender" value="male"> Yes 
+      <input type="radio" name="gender" value="female"> No <br>
+      <br>
+      Email: <input type="text" name="email" /><br>
+      <br>
+      <!-- Mood: <input type="text" name="mood" /><br> -->
+      <!-- Activity: <input type="text" name="activity" /><br> -->
+      <input type="submit" value="Submit" />
+    </form>
+  </body>
+  <script>
+    // function to extract query string
+    function getParameterByName(name, url) {
+      if (!url) url = window.location.href;
+      name = name.replace(/[\[\]]/g, "\\$&");
+      var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+      results = regex.exec(url);
+      if (!results) return null;
+      if (!results[2]) return '';
+      return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
+    var questionString = getParameterByName("question");
+    document.getElementById("question").innerHTML = questionString;
+
+    <!-- console.log(questionElement) -->
+    <!-- questionElement.innerHTML(question); -->
+  </script>
+
 </html>
