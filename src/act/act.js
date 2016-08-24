@@ -1,7 +1,11 @@
 'use strict';
 
-const http = require('http');
-const _ = require('underscore');
+const _ = require('lodash');
+const bodyParser = require('body-parser');
+const express = require("express");
+const sendPostRequest = require('request').post;
+
+const app = express();
 const port = 3001;
 
 var sg = require('sendgrid')(process.env.SENDGRID_API_KEY);
@@ -68,6 +72,25 @@ function requestHandler(request, response) {
   }
 }
 
+// Note: this can be factored out w/ data as a param
+function registerActionHandler() {
+  const data = {
+    callbackURL: 'http://127.0.0.1:3001/handle-action',
+    collection: 'actions'
+  };
+  sendPostRequest(
+    'http://localhost:4000/register-handler',
+    { json: data },
+    (error, res, body) => {
+      if (!error && res.statusCode === 200) {
+        console.log('[act] successfully registered action handler');
+      } else {
+        console.error(`[act] failed to register action handler, will try again`);
+        setTimeout(registerActionHandler, 2000);
+      }
+    }
+  );
+}
 
 function serve() {
   if (process.env.SENDGRID_API_KEY === undefined) {
@@ -75,9 +98,23 @@ function serve() {
     return
   }
 
-  const server = http.createServer(requestHandler);
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: true }));
 
-  server.listen(port, (err) => {
+  registerActionHandler();
+  
+  app.post('/handle-action', (request, response) => {
+    const data = request.body;    
+    if (!data.ops || data.ops.length != 1) {
+      return failure(response, "can't handle act: ${data}");
+    }
+    const newAction = data.ops[0];
+    console.log('[act] observed new action', newAction);
+    
+    return success(response, 'successfully received action');
+  });
+  
+  app.listen(port, (err) => {
     if (err) {
       return console.log('[act] something bad happened', err)
     }
