@@ -28,13 +28,15 @@ function serve() {
     if (!request.body) {
       return failure(response, 'need post request body');
     }
-    if (!request.body.uid) {
-      return failure(response, 'need uid');
+    const email = request.body.email;
+    if (!email) {
+      return failure(response, 'need email');
     }
     // Send data to store
     const postData = _.assign({}, request.body, {
-      collection: 'userData',
-      datetime: new Date()
+      collection: 'percepts',
+      datetime: new Date(),
+      email // replace with uid?
     });
     sendPostRequest(
       'http://localhost:4000/db/insert',

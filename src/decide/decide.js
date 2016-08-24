@@ -46,12 +46,28 @@ function registerPerceptHandler() {
   );
 }
 
+
 function serve() {
 
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
 
   registerPerceptHandler();
+
+  app.post('/handle-percept', (request, response) => {
+    const data = request.body;    
+    if (!data.ops || data.ops.length != 1) {
+      return failure(response, `can't handle percept: ${data}`);
+    }
+    const newPercept = data.ops[0];
+    console.log('[decide] observed new percept', newPercept);
+    // (-1. decide on simple model + space of questions)
+    // (0. update perceive.html so that data corresponds to answer to a question)
+    // 1. retrieve all percepts for user with email given in newPercept
+    // 2. condition model on percepts
+    // 3. compute new question based on all data points for this user
+    return success(response, 'successfully received percept');
+  });
 
   app.listen(port, () => {
     console.log(`[decide] running at http://localhost:${port}`);
