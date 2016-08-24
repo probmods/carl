@@ -1,3 +1,5 @@
+'use strict';
+
 function serve() {
   console.log('[infer] nothing to do yet');
 }
