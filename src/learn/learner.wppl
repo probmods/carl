@@ -1,4 +1,18 @@
-var globalInput = globalStore.input;
+// globalStore.userData
+// globalStore.params
 
-var globalOutput = {theta: gaussian(globalInput.length, 0.1)};
-globalStore['output'] = globalOutput;
+// var globalInput = globalStore.input;
+
+var y = gaussian(0, 1);
+// var globalOutput = {theta: gaussian(globalInput.length, 0.1)};
+// globalStore['output'] = globalOutput;
+
+// newParams
+var x = "hi from webppl " + y;
+
+var value = {
+  output: x,
+  newParameters: { y: y }
+};
+
+value;

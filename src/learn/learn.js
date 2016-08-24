@@ -67,25 +67,22 @@ function loadParameters(callbacks) {
         log(`failed to read user data from db: ${res ? res.statusCode : ''} ${error}`);
         callbacks.failure();
       }
-    });  
+    });
 }
 
 function updateParameters(options, callbacks) {
-  // options.params
-  // options.userData
-  // options.model
   log('running webppl model to update parameters');
-  // TODO
-  /* const prepared = webppl.prepare(
-     compiled,
-     (s, x) => {
-     log(JSON.stringify(s.output))
-     },
-     {initialStore: {input: responses}}
-     );
-     prepared.run(); */  
-  const newParameters = {};
-  callbacks.success(newParameters)
+  const prepared = webppl.prepare(
+    options.model,
+    (s, value) => {
+      const newParameters = value.newParameters;
+      const output = value.output;
+      log(`webppl: ${output}`);
+      callbacks.success(newParameters)
+    },
+    { initialStore: { userData: options.userData, params: options.params } }
+  );
+  prepared.run();
 }
 
 function storeParameters(params, callbacks) {
@@ -97,7 +94,7 @@ function storeParameters(params, callbacks) {
 function runLearner(model) {
   function failure() {
     log('learner failed to complete iteration, starting over');
-    setTimeout(runLearner, 2000);
+    setTimeout(() => runLearner(model), 2000);
   }
   loadUserData({
     success: (userData) => {
@@ -108,7 +105,7 @@ function runLearner(model) {
               storeParameters(newParams, {
                 success: () => {
                   log('successfully completed learner iteration');
-                  setTimeout(runLearner, 1000);
+                  setTimeout(() => runLearner(model), 1000);
                 },
                 failure
               });
