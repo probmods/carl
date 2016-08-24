@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "request": "^2.74.0",
     "webppl": "github:probmods/webppl#dev"
   }
 }
