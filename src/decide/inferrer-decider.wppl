@@ -18,18 +18,18 @@ var mockParams = {mood: {driftRate: 20, observationNoise: 50},
                   prod: {driftRate: 20, observationNoise: 50}};
 var params = globalStore['params'] || mockParams;
 
-var mockData = [{mood: 0.5, prod: 0.5},
-                {mood: 0.3},
-                undefined,
-                {prod: 0.6}];
-// munge mock data to vectors
-var mockDataMunged = map(function(d) {
+var mockData = [{prod: '0.43'},
+                {prod: '0.86'},
+                {prod: '0.43'},
+                {prod: '0.81'}];
+
+var rawData = globalStore['data'] || mockData;
+// munge raw data
+var data = map(function(d) {
   return d === undefined ? undefined :
     {mood: d.mood ? Vector([d.mood, 1 - d.mood]) : undefined,
      prod: d.prod ? Vector([d.prod, 1 - d.prod]) : undefined}
-}, mockData);
-var data = globalStore['data'] || mockDataMunged;
-
+}, rawData);
 // ------------------------------
 
 
