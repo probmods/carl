@@ -29,7 +29,9 @@ function success(response, msg) {
 // TODO: use real user email, server URL
 function notify(params) {
   console.log("notifying");
-  var perceiveURL = "file:///Users/rxdh/Repos/sampleme/src/perceive/perceive.html?question=" + encodeURI(params.question) + "&type=" + encodeURI(params.type),
+  var perceiveURL = ("http://localhost:3005/perceive.html"
+		     + "?question=" + encodeURI(params.question)
+		     + "&type=" + encodeURI(params.type)),
       from_email = new sgMail.Email('mail@sampleme.io'),
       to_email = new sgMail.Email(params.email),
       subject = '[SampleMe]: ' + params.question,
