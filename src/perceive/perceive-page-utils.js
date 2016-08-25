@@ -22,6 +22,7 @@ document.getElementById("hidden type").value = type;
 var questionType = getParameterByName("type");
 var responseField = document.getElementById("response-field");
 var newHTML = "";
+
 switch (questionType) {
   case "yes-no" :
     console.log("in y/n case");
@@ -30,7 +31,19 @@ switch (questionType) {
     break;
   case "free-response" :
     newHTML += '<input type = "text" name="answer">';
-    break;
+  break;
+  case "slider" :
+  newHTML +=  '<table id="slider_table" class="slider_table">\n' ;
+  newHTML += '<tr>';
+  newHTML += '<td class="left"><h3>not at all</h3></td>';
+  newHTML += '<td class="right" id="numObjects"><h3>very</h3></td>';
+  newHTML += '</tr>';
+  newHTML += '';
+  newHTML += '<tr><td colspan="2"><div id="single_slider" class="slider"></div></td></tr>';
+  newHTML += '</table>';
+  newHTML += '<input type="hidden" name="response" id="hidden_slider" value=".5">'; 
+
+  break;
   case "likert" :
     newHTML += '<table align = "center"><tr>\n';
     newHTML += '<td align="center"> ';
@@ -71,4 +84,34 @@ switch (questionType) {
     break;
 }
 
+function make_slider(label, response_callback) {
+  //$(label).empty();
+  $(label).slider({
+    range : "min",
+    min : 0,
+    max : 1,
+    step: 0.01,
+    value : 0.5,
+    slide : response_callback,
+    change : response_callback
+  });
+  $(label + ' .ui-slider-handle').hide();
+  $(label).mousedown(function(){
+    $(label + ' .ui-slider-handle').show();
+    $(label).css({"background":"#99D6EB"});
+    $(label + ' .ui-slider-handle').css({
+      "background":"#667D94",
+      "border-color": "#001F29"
+    });
+  });
+  $(label).css({"background":"#eee"});
+};
+
 responseField.innerHTML = newHTML;
+
+// Need to do this after innerHTML is set
+if(questionType == "slider") {
+  make_slider("#single_slider", function(event, ui) {
+    $('#hidden_slider')[0].value = ui.value ;
+  });
+}
