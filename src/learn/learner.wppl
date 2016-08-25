@@ -1,11 +1,30 @@
+var userData = globalStore.userData;
 var oldParams = globalStore.params;
 
-var x = (oldParams['x'] || 0) + 1;
-var y = "hi from webppl " + gaussian(0, 1);
+// TODO: need to expose util.registerParams in a simple version that loads in by name.
+
+// var newParams = Optimize(
+//   { objective: 'ELBO', params: oldParams },
+//   function(){    
+//     var params = registerParams('global', oldParams);
+//     var timeStep = makeTimeStep(params);
+//     return mapData(
+//       { data: userData },
+//       function(person) {
+//         return foldData(init, //the initial distribution
+//                         timeStep, //the update function.
+//                         person.data //the observations sequence
+//                        )});
+//   }
+// );
+
+var newParams = {
+  x: (oldParams.x || 0) + 1
+};
 
 var value = {
-  output: y,
-  newParameters: { x: x }
+  output: "done",
+  newParameters: newParams
 };
 
 value;
