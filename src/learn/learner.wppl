@@ -1,30 +1,88 @@
-var userData = globalStore.userData;
-var oldParams = globalStore.params;
-
-// TODO: need to expose util.registerParams in a simple version that loads in by name.
-
-// var newParams = Optimize(
-//   { objective: 'ELBO', params: oldParams },
-//   function(){    
-//     var params = registerParams('global', oldParams);
-//     var timeStep = makeTimeStep(params);
-//     return mapData(
-//       { data: userData },
-//       function(person) {
-//         return foldData(init, //the initial distribution
-//                         timeStep, //the update function.
-//                         person.data //the observations sequence
-//                        )});
-//   }
-// );
-
-var newParams = {
-  x: (oldParams.x || 0) + 1
+var munge = function(d) {
+  return d === undefined ? undefined :
+    {mood: d.mood ? Vector([d.mood, 1 - d.mood]) : undefined,
+     prod: d.prod ? Vector([d.prod, 1 - d.prod]) : undefined}
 };
+
+var allUserData = {
+  'andreas@stuhlmueller.org': map(munge, [{mood: 0.5}, {mood: 0.3}, {prod: 0.6}]),
+  'rxdh@stanford.edu': map(munge, [{mood: 0.5}, {mood: 0.4}, {prod: 0.7}])
+};
+
+var initialParams = [20, 50, 20, 50];
+// var prevParams = [Vector(initialParams)];  // <- use this line (and comment out next) to reset params
+var prevParams = [Vector(globalStore.params ? _.values(globalStore.params) : initialParams)];
+
+var structureParams = function(params) {
+  var v = params[0];
+  return {
+    mood: {driftRate: T.get(v, 0), observationNoise: T.get(v, 1)},
+    prod: {driftRate: T.get(v, 2), observationNoise: T.get(v, 3)}
+  };
+}
+
+// --------------------------------------------------------------------
+
+console.log('PREV PARAMS:', prevParams[0].data);
+
+var transition = function(prev, params){
+  var moodDrift = params.mood.driftRate,
+      prodDrift = params.prod.driftRate,
+      mood = prev.latent.mood,
+      prod = prev.latent.prod;
+
+  return {mood: dirichlet(T.mul(mood, moodDrift)),
+          prod: dirichlet(T.mul(prod, prodDrift))}
+}
+
+var Observation = function(val, noise) {
+  return Dirichlet({alpha: T.mul(val, noise)})
+}
+
+var makeTimeStep = function(params) {
+  return function(prev, obs) {
+    var nextLatent = transition(prev, params)
+    var obsMood = observe(Observation(nextLatent.mood, params.mood.observationNoise),
+                          obs ? obs.mood : undefined);
+    var obsProd = observe(Observation(nextLatent.prod, params.prod.observationNoise),
+                          obs ? obs.prod : undefined);
+
+    return {latent: nextLatent, obs: {mood: obsMood, prod: obsProd}}
+  }
+}
+
+var foldData = function(init, timeStep, observations) {
+  return reduce(function(x,acc){return acc.concat(timeStep(acc[acc.length-1], x))},
+                [init],
+                observations.reverse()) // TODO: eliminate reverse() by writing reduceRight
+}
+
+var allNewParams = Optimize(
+  function() {
+    var params = structureParams(registerParamsByName('global', prevParams));
+    var timeStep = makeTimeStep(params);
+    var init = {latent: {mood: dirichlet(Vector([1,1])),
+                         prod: dirichlet(Vector([1,1]))}};
+    mapData(
+      { data: _.keys(allUserData) },
+      function(email) {
+        var datapoints = allUserData[email];
+        return foldData(init, //the initial distribution
+                        timeStep, //the update function.
+                        datapoints //the observations sequence
+                       )
+      })
+  },
+  { estimator: 'ELBO', steps: 500, stepSize: 0.01 }
+);
+
+var newParams = allNewParams.global;
+
+console.log('NEW PARAMS:', newParams[0].data);
 
 var value = {
   output: "done",
-  newParameters: newParams
+  newParameters: newParams[0].data
 };
 
 value;

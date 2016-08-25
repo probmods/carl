@@ -1,0 +1,25 @@
+var allUserData = globalStore.userData;
+var oldParams = globalStore.params ? [Vector(_.values(globalStore.params))] : Vector([1, 1]);
+
+console.log('OLD PARAMS:', oldParams[0].data);
+
+var allNewParams = Optimize(
+  function() {
+    var params = registerParamsByName('global', oldParams);
+    var dummy = gaussian(0, 1);  // need this to enable PW
+    var dist = Dirichlet({ alpha: params[0] });
+    observe(dist, Vector([.01, .99]));
+  },
+  { estimator: 'ELBO', steps: 1000 }
+);
+
+var newParams = allNewParams.global;
+
+console.log('NEW PARAMS:', newParams[0].data);
+
+var value = {
+  output: "done",
+  newParameters: newParams[0].data
+};
+
+value;
