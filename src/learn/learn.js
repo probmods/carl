@@ -6,6 +6,7 @@ const http = require('http');
 const path = require('path');
 const sendPostRequest = require('request').post;
 const webppl = require('webppl');
+var _ = require('lodash');
 
 const port = 3004;
 
@@ -42,7 +43,11 @@ function loadUserData(callbacks) {
     (error, res, body) => {
       if (!error && res && res.statusCode === 200) {
         log('successfully read user data from db');
-        callbacks.success(body);
+        const groupedData = _.groupBy(body, 'email');
+        const sortedData = _.mapValues(groupedData, (value, key) => {
+          return _.sortBy(value, 'datetime');
+        });
+        callbacks.success(sortedData);
       } else {
         log(`failed to read user data from db: ${res ? res.statusCode : ''} ${error}`);
         callbacks.failure();
