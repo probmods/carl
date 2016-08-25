@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "colors": "^1.1.2",
+    "lodash": "^4.15.0",
     "request": "^2.74.0",
     "webppl": "github:probmods/webppl#dev"
   }
