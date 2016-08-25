@@ -29,7 +29,7 @@ var data = map(function(d) {
   return d === undefined ? undefined :
     {mood: d.mood ? Vector([d.mood, 1 - d.mood]) : undefined,
      prod: d.prod ? Vector([d.prod, 1 - d.prod]) : undefined}
-}, mockData);
+}, rawData);
 // ------------------------------
 
 
