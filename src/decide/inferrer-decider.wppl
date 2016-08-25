@@ -1,3 +1,16 @@
+// --------------------------------------------------------------------
+// Params
+
+var structureParams = function(params) {
+  var v = params[0];
+  return {
+    mood: {driftRate: T.get(v, 0), observationNoise: T.get(v, 1)},
+    prod: {driftRate: T.get(v, 2), observationNoise: T.get(v, 3)}
+  };
+}
+
+// --------------------------------------------------------------------
+
 // inputs
 // ------------------------------
 

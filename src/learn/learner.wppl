@@ -1,3 +1,20 @@
+// --------------------------------------------------------------------
+// Params
+
+var structureParams = function(params) {
+  var v = params[0];
+  return {
+    mood: {driftRate: T.get(v, 0), observationNoise: T.get(v, 1)},
+    prod: {driftRate: T.get(v, 2), observationNoise: T.get(v, 3)}
+  };
+};
+
+var initialParams = [20, 50, 20, 50];
+// var prevParams = [Vector(initialParams)];  // <- use this line (and comment out next) to reset params
+var prevParams = [Vector(globalStore.params ? _.values(globalStore.params) : initialParams)];
+
+// --------------------------------------------------------------------
+
 var munge = function(d) {
   return d === undefined ? undefined :
     {mood: d.mood ? Vector([d.mood, 1 - d.mood]) : undefined,
@@ -8,18 +25,6 @@ var allUserData = {
   'andreas@stuhlmueller.org': map(munge, [{mood: 0.5}, {mood: 0.3}, {prod: 0.6}]),
   'rxdh@stanford.edu': map(munge, [{mood: 0.5}, {mood: 0.4}, {prod: 0.7}])
 };
-
-var initialParams = [20, 50, 20, 50];
-// var prevParams = [Vector(initialParams)];  // <- use this line (and comment out next) to reset params
-var prevParams = [Vector(globalStore.params ? _.values(globalStore.params) : initialParams)];
-
-var structureParams = function(params) {
-  var v = params[0];
-  return {
-    mood: {driftRate: T.get(v, 0), observationNoise: T.get(v, 1)},
-    prod: {driftRate: T.get(v, 2), observationNoise: T.get(v, 3)}
-  };
-}
 
 // --------------------------------------------------------------------
 
