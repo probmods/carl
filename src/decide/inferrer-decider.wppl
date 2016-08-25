@@ -9,14 +9,19 @@ var structureParams = function(params) {
   };
 }
 
+var initialParams = [20, 50, 20, 50];
+// var rawParams = [Vector(initialParams)];  // <- use this line (and comment out next) to reset params
+var rawParams = [Vector(globalStore.params ? _.values(globalStore.params) : initialParams)];
+var params = structureParams(rawParams);
+
 // --------------------------------------------------------------------
 
 // inputs
 // ------------------------------
 
-var mockParams = {mood: {driftRate: 20, observationNoise: 50},
-                  prod: {driftRate: 20, observationNoise: 50}};
-var params = globalStore['params'] || mockParams;
+// var mockParams = {mood: {driftRate: 20, observationNoise: 50},
+//                   prod: {driftRate: 20, observationNoise: 50}};
+// var params = globalStore['params'] || mockParams;
 
 var mockData = [{prod: '0.43'},
                 {prod: '0.86'},

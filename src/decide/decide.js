@@ -9,6 +9,7 @@
 
 const _ = require('lodash');
 const bodyParser = require('body-parser');
+const colors = require('colors/safe');
 const express = require('express');
 const sendPostRequest = require('request').post;
 const webppl = require('webppl');
@@ -24,6 +25,14 @@ const compiledModel = webppl.compile(deciderCode, {
 
 const app = express();
 const port = 3002;
+
+function makeMessage(text) {
+  return colors.red('[decide]') + ` ${text}`;;
+}
+
+function log(text) {
+  console.log(makeMessage(text));
+}
 
 // NOTE: can factor out success/failure 
 function failure(response, msg) {
@@ -59,17 +68,51 @@ function registerPerceptHandler() {
   );
 }
 
+
+function loadParameters(callbacks) {
+  log('reading current model parameters from db');
+  const queryData = {
+    collection: 'parameters',
+    query: {
+      '$orderby': { '$natural': -1 },
+      '$query': {} }
+  };
+  sendPostRequest(
+    'http://127.0.0.1:4000/db/findOne',
+    { json: queryData },
+    (error, res, body) => {
+      if (!error && res && res.statusCode === 200) {
+        log('successfully read parameters from db');
+        let newParameters = undefined;
+        if (!body) {
+          log('no parameters found, starting with empty parameter set');
+        } else {
+          if (!body.params) {
+            error('expected params document to have single params key');
+            callbacks.failure();
+          }
+          newParameters = body.params;
+        }
+        callbacks.success(newParameters);
+      } else {
+        log(`failed to read user data from db: ${res ? res.statusCode : ''} ${error}`);
+        callbacks.failure();
+      }
+    });
+}
+
+
 // 1. retrieve all percepts for user with email given in newPercept
 // 2. condition model on percepts
 // 3. compute new question based on all data points for this user
-function inferNewAction (percepts, callback) {
+function inferNewAction (percepts, params, callback) {
   const prepared = webppl.prepare(
     compiledModel,
     (s, value) => {
       console.log(`webppl: ${value}`);
       callback(value);
     },
-    { initialStore: { data: percepts.userData }}
+    { initialStore: { data: percepts.userData, params } }
   );
   prepared.run();
   //webppl.run(deciderCode, (s, x) => callback(x));
@@ -165,17 +208,24 @@ function serve() {
     }
     console.log("[decide] Handling percept");		    
     const newPercept = data.ops[0];
-     console.log(newPercept.email);
-    loadUserData(newPercept.email, (allPercepts) => {
-      console.log('[decide] extracted all percepts for ' + newPercept.email);
-      console.log(allPercepts);
-      inferNewAction(allPercepts, (questionChoice) => {
-        console.log(questionChoice);
-        var actionObj = makeAction(newPercept, questionChoice);
-        console.log('[decide] constructed new action', actionObj);
-        sendActionToStore(response, actionObj);
-      });
-    });
+    console.log(newPercept.email);
+    loadParameters({
+      success: (params) => {
+        loadUserData(newPercept.email, (allPercepts) => {
+          console.log('[decide] extracted all percepts for ' + newPercept.email);
+          console.log(allPercepts);
+          inferNewAction(allPercepts, params, (questionChoice) => {
+            console.log(questionChoice);
+            var actionObj = makeAction(newPercept, questionChoice);
+            console.log('[decide] constructed new action', actionObj);
+            sendActionToStore(response, actionObj);
+          });
+        });
+      },
+      failure: () => {
+        console.error('[decide] failed to load parameters');
+      }
+    })
   });
 
   app.listen(port, () => {

@@ -157,11 +157,11 @@ function serve() {
             // Call handlers that watch this collection
             handlers[collectionName].forEach((callbackURL) => {
               log(`calling ${collectionName} handler: ${callbackURL}`);
-              sendPostRequest(callbackURL, { json: result }, (error, res, body) => {
-                if (!error && res.statusCode === 200) {
+              sendPostRequest(callbackURL, { json: result }, (err2, res, body) => {
+                if (!err2 && res.statusCode === 200) {
                   log(`successfully notified handler ${callbackURL}`);
                 } else {
-                  error(`[store] error notifying ${callbackURL}: ${error} ${body}`);
+                  error(`[store] error notifying ${callbackURL}: ${err2} ${body}`);
                 }
               });
             });
