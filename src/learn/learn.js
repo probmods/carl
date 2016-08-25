@@ -70,7 +70,7 @@ function loadParameters(callbacks) {
     (error, res, body) => {
       if (!error && res && res.statusCode === 200) {
         log('successfully read parameters from db');
-        let newParameters = {};
+        let newParameters = undefined;
         if (!body) {
           log('no parameters found, starting with empty parameter set');
         } else {
