@@ -122,6 +122,18 @@ function IDToQuestionString(ID) {
 	  "How productive are you right now?");
 }
 
+function preprocess(userEmail, body) {
+  const groupedData = _.groupBy(body, 'email');
+  const sortedData = _.mapValues(groupedData, (value, key) => {
+    return _.sortBy(value, 'datetime');
+  });
+  const reformattedData = _.map(sortedData[userEmail], (observation) => {
+    return _.fromPairs([[questionStringToID(observation["question"]),
+			 observation["response"]]]);
+  });
+  return reformattedData;
+}
+
 function loadUserData(userEmail, callback) {
   console.log('[decide] reading user data from db');
   sendPostRequest(
@@ -130,15 +142,8 @@ function loadUserData(userEmail, callback) {
     (error, res, body) => {
       if (!error && res && res.statusCode === 200) {
         console.log('successfully read user data from db');
-	const groupedData = _.groupBy(body, 'email');
-        const sortedData = _.mapValues(groupedData, (value, key) => {
-          return _.sortBy(value, 'datetime');
-        });
-	const reformattedData = _.map(sortedData[userEmail], (observation) => {
-	  return _.fromPairs([[questionStringToID(observation["question"]),
-			       observation["response"]]]);
-	});
-        callback(reformattedData);
+	var processedData = preprocess(userEmail, body);
+        callback(processedData);
       } else {
         console.log(`failed to read user data from db: ${res ? res.statusCode : ''} ${error}`);
         //callbacks.failure();
