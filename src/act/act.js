@@ -29,7 +29,7 @@ function success(response, msg) {
 // TODO: use real user email, server URL
 function notify(email, question) {
   console.log("notifying");
-  var perceiveURL = "file:///Users/rxdh/Repos/sampleme/src/perceive/perceive.html?question=" + encodeURI(question),
+  var perceiveURL = "file:///Users/rxdh/Repos/sampleme/src/perceive/perceive.html?question=" + encodeURI(params.question) + "&type=" + encodeURI(params.type),
       from_email = new sgMail.Email('mail@sampleme.io'),
       to_email = new sgMail.Email(email),
       subject = '[SampleMe]: ' + question,
@@ -64,6 +64,7 @@ function notify(email, question) {
 function scheduleJob(response, params) {
   // convert uid and time to integers
   params.question = params.questionData.headerString;
+  params.type = params.questionType;
   
   if (params.delta) {
     params.delta = parseInt(params.delta);
@@ -76,7 +77,6 @@ function scheduleJob(response, params) {
 
   // TODO: use real scheduled time
   var soon = (_.now() + 1000);
-  console.log(soon);
   var job = new CronJob({
     cronTime: new Date(soon),
     onTick: function() {

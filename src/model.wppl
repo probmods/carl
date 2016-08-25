@@ -1,0 +1,135 @@
+/*
+Some notes on model structure and inference strategy for active agents (especially the sampleme agent).
+
+*/
+
+
+//globalparams up here?
+var params = {
+  mood: {driftRate: 50, observationNoise: 50},
+  prod: {driftRate: 50, observationNoise: 50}
+} ;
+
+var transition = function(prev, params){
+  var moodDrift = params.mood.driftRate,
+      prodDrift = params.prod.driftRate,
+      mood = prev.latent.mood,
+      prod = prev.latent.prod;
+
+  var r = {mood: dirichlet(T.mul(mood, moodDrift)),
+           prod: dirichlet(T.mul(prod, prodDrift))}
+  return r;
+}
+// // return transition({latent: {mood: Vector([0.8, 0.2]),
+// //                             prod: Vector([0.4, 0.6])}},
+// //                   params)
+
+var moodObservation = function(mood, noise) {
+  return Dirichlet({alpha: T.mul(mood, noise)})
+}
+
+
+var prodObservation = function(prod, noise) {
+  return Dirichlet({alpha: T.mul(prod, noise)})
+}
+
+//note that observe acts as sample if value is undefined, so this will sample returned obs when input obs is indefined.
+var makeTimeStep = function(params) {
+  return function(prev, obs) {
+    var nextLatent = transition(prev, params)
+    var obsMood = observe(moodObservation(nextLatent.mood, params.mood.observationNoise),
+                          obs ? obs.mood : undefined);
+
+    var obsProd = observe(prodObservation(nextLatent.prod, params.prod.observationNoise),
+                          obs ? obs.prod : undefined);
+
+    return {latent: nextLatent, obs: {mood: obsMood, prod: obsProd}}
+  }
+}
+
+var foldData = function(/*initDist*/init, timeStep, observations) {
+  //var init = sample(initDist);
+  return reduce(function(x,acc){return acc.concat(timeStep(acc[acc.length-1], x))},
+                [init],
+                observations.reverse()) // TODO: eliminate reverse() by writing reduceRight
+}
+
+// // testing foldData
+// // --------------------
+//util.seedRNG(3)
+var N = 5000;
+// var initDist = Infer({method: 'forward', samples: N},
+//                      function(){
+//                        return {latent: {mood: beta(2,2), prod: beta(2,2)}}
+//                      })
+var timeStep = makeTimeStep(params);
+
+//util.seedRNG(3)
+var dist = Infer({method: 'optimize', samples: 5000, steps: 5000},
+      function() {
+
+        var initDist = {latent: {mood: dirichlet(Vector([1,1])),
+                                 prod: dirichlet(Vector([1,1]))}};
+        var seq = foldData(initDist,
+                           timeStep,
+                           [{mood: Vector([0.2, 0.8]), prod: Vector([0.8, 0.2])},
+                            undefined,
+                            {mood: Vector([0.2, 0.8]), prod: Vector([0.8, 0.2])},
+                           ]);
+
+        return T.get(_.last(seq).latent.mood, 0)
+      })
+
+
+
+console.log('---------------')
+console.log(expectation(dist))
+console.log('---------------')
+
+dist
+
+// // --------------------
+
+
+
+// // the overall model structure:
+
+// // mapData({data: allPeople},
+// //         function(person) {
+// //           foldData(init, //the initial distribution
+// //                    timeStep, //the update function
+// //                    person.data //the observations sequence
+// //                   )})
+
+// //updating posterior on local latents for a person given newData, from current latent dist priorLatent
+// var postLatent = function(priorLatent,newData){
+//   var timeStep = makeTimeStep(getTheParamsFromStore())
+//   return Infer({method: 'SMC'},
+//                function(){
+//                  var seq = foldData(priorLatent, timeStep, newData)
+//                  return seq[seq.length-1].latent
+//                })}
+
+// //posterior predictive for next T timesteps... uncertainty estimates for particular questions can be derived similarly
+// var predictive = function(latentDist, T) {
+//   var timeStep = makeTimeStep(getTheParamsFromStore())
+//   return Infer({method: 'forward'}, //can use forward because no new data will be used
+//                function(){
+//                  return foldData(latentDist, timeStep, repeat(T,function(){return undefined}))
+//                })}
+
+
+// //learning params from data
+// var oldParams = getTheParamsFromStore()
+// var newParams = Optimize({objective: 'ELBo', params: currParams},
+//                          function(){
+//                            var params = registerParams('global',oldParams)//TODO: need to expose util.registerParams in a simple version that loads in by name.
+//                            var timeStep = makeTimeStep(params)
+//                            mapData({data: allPeople},
+//                                    function(person) {
+//                                      foldData(init, //the initial distribution
+//                                               timeStep, //the update function.
+//                                               person.data, //the observations sequence
+//                                              )})}
+//                         )
+// putTheParamsInStore(newParams)//might need to ad.value() them?

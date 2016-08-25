@@ -1,14 +1,19 @@
 <html>
+
+  <head>
+    <link rel="stylesheet" href="perceive.css" />
+  </head>
+
   <body>
-    
     <form method="POST" action="http://127.0.0.1:3005">
-      <h3 id="question"></h3>
+      <h3 id="question">{{}}</h3>
       <!-- hacky hidden field so we also get the question in the post request -->
       <input type="hidden" name="question" id="hidden question" value="">
-      
+      <input type="hidden" name="type" id="hidden type" value="">      
       <hr>
-      <input type="radio" name="answer" value="yes"> Yes 
-      <input type="radio" name="answer" value="no"> No <br>
+      <div id="response-field">
+	{{}}
+      </div>
       <br>
       Email: <input type="text" name="email" /><br>
       <br>
@@ -16,24 +21,6 @@
       <!-- Activity: <input type="text" name="activity" /><br> -->
       <input type="submit" value="Submit" />
     </form>
+    <script src="perceive-page-utils.js"></script>
   </body>
-  <script>
-    // function to extract query string
-    function getParameterByName(name, url) {
-      if (!url) url = window.location.href;
-      name = name.replace(/[\[\]]/g, "\\$&");
-      var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-      results = regex.exec(url);
-      if (!results) return null;
-      if (!results[2]) return '';
-      return decodeURIComponent(results[2].replace(/\+/g, " "));
-    }
-    var questionString = getParameterByName("question");
-    document.getElementById("question").innerHTML = questionString;
-    document.getElementById("hidden question").value = questionString;
-
-    <!-- console.log(questionElement) -->
-    <!-- questionElement.innerHTML(question); -->
-  </script>
-
 </html>
