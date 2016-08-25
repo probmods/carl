@@ -52,7 +52,7 @@ function registerPerceptHandler() {
 function makeAction(newPercept) {
   var notifyTime = new Date();
   return {
-    questionType: "likert",
+    questionType: "slider",
     questionData: {headerString: "how sad are you?"},
     datetime: notifyTime,
     email: newPercept.email,
