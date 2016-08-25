@@ -21,10 +21,18 @@ var munge = function(d) {
      prod: d.prod ? Vector([d.prod, 1 - d.prod]) : undefined}
 };
 
-var allUserData = {
-  'andreas@stuhlmueller.org': map(munge, [{mood: 0.5}, {mood: 0.3}, {prod: 0.6}]),
-  'rxdh@stanford.edu': map(munge, [{mood: 0.5}, {mood: 0.4}, {prod: 0.7}])
+// var allUserData = {
+//   'andreas@stuhlmueller.org': map(munge, [{mood: 0.5}, {mood: 0.3}, {prod: 0.6}]),
+//   'rxdh@stanford.edu': map(munge, [{mood: 0.5}, {mood: 0.4}, {prod: 0.7}])
+// };
+
+var mungeValues = function(rawData) {
+  return mapObject(function(key, value){
+    return map(munge, value);
+  }, rawData);
 };
+
+var allUserData = mungeValues(globalStore.userData || {});
 
 // --------------------------------------------------------------------
 

@@ -26,7 +26,7 @@ function error(text) {
 function initLearner() {
   log('compiling webppl code');
   const learnerCodePath = path.join(__dirname, 'learner.wppl');
-  const learnerCode = fs.readFileSync(learnerCodePath, 'utf8');  
+  const learnerCode = fs.readFileSync(learnerCodePath, 'utf8');
   const compiledModel = webppl.compile(learnerCode, {
     verbose: true,
     debug: true
@@ -34,6 +34,28 @@ function initLearner() {
   const headerPath = path.join(__dirname, 'registerParams.js');
   webppl.requireHeader(headerPath);
   return compiledModel;
+}
+
+function questionStringToID(questionString) {
+  return (questionString === "How good are you feeling?" ? "mood" : "prod");
+}
+
+function IDToQuestionString(ID) {
+  return (ID === "mood" ? "How good are you feeling?" : "How productive are you right now?");
+}
+
+function preprocess(body) {
+  const groupedData = _.groupBy(body, 'email');
+  const sortedData = _.mapValues(groupedData, (value, key) => {
+    return _.sortBy(value, 'datetime');
+  });
+  const reformattedData = _.mapValues(sortedData, (observations) => {
+    return observations.map((observation) => {
+      return _.fromPairs([[questionStringToID(observation["question"]),
+                           observation["response"]]]);
+    });
+  });
+  return reformattedData;
 }
 
 function loadUserData(callbacks) {
@@ -44,11 +66,8 @@ function loadUserData(callbacks) {
     (error, res, body) => {
       if (!error && res && res.statusCode === 200) {
         log('successfully read user data from db');
-        const groupedData = _.groupBy(body, 'email');
-        const sortedData = _.mapValues(groupedData, (value, key) => {
-          return _.sortBy(value, 'datetime');
-        });
-        callbacks.success(sortedData);
+        const processedData = preprocess(body);
+        callbacks.success(processedData);
       } else {
         log(`failed to read user data from db: ${res ? res.statusCode : ''} ${error}`);
         callbacks.failure();
