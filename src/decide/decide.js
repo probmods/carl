@@ -55,7 +55,7 @@ function makeAction(newPercept) {
     questionType: "yes/no",
     questionData: {headerString: "are you a dog?"},
     datetime: notifyTime,
-    user: "hawkrobe@gmail.com", // replace with uid?
+    email: newPercept.email,
     collection: 'actions',
     enacted: false
   };
