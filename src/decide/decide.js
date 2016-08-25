@@ -11,6 +11,9 @@ const _ = require('lodash');
 const bodyParser = require('body-parser');
 const express = require('express');
 const sendPostRequest = require('request').post;
+const webppl = require('webppl');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const port = 3002;
@@ -48,13 +51,26 @@ function registerPerceptHandler() {
   );
 }
 
+// 1. retrieve all percepts for user with email given in newPercept
+// 2. condition model on percepts
+// 3. compute new question based on all data points for this user
+function inferNewAction (newPercept, callback) {
+  const deciderCodePath = path.join(__dirname, 'inferrer-decider.wppl');
+  const deciderCode = fs.readFileSync(deciderCodePath, 'utf8');
+  console.log(deciderCode);
+  webppl.run(deciderCode, (s, x) => callback(x));
+}
+
 // TODO: actually use newPercept, do inference 
-function makeAction(newPercept) {
+function makeAction(newPercept, questionChoice) {
   var notifyTime = new Date();
+  var headerString = (questionChoice.type == "prod" ? 
+		      "How productive are you feeling?" :
+		      "How happy are you?");
   return {
     questionType: "slider",
-    questionData: {headerString: "how sad are you?"},
-    datetime: notifyTime,
+    questionData: {headerString: headerString},
+    datetime: questionChoice.time,
     email: newPercept.email,
     collection: 'actions',
     enacted: false
@@ -89,14 +105,12 @@ function serve() {
     }
     const newPercept = data.ops[0];
     console.log('[decide] observed new percept', newPercept);
-    // (-1. decide on simple model + space of questions)
-    // (0. update perceive.html so that data corresponds to answer to a question)
-    // 1. retrieve all percepts for user with email given in newPercept
-    // 2. condition model on percepts
-    // 3. compute new question based on all data points for this user
-    var actionInfo = makeAction(newPercept);
-    console.log('[decide] constructed new action', actionInfo);
-    sendActionToStore(response, actionInfo);
+
+    inferNewAction(newPercept, (questionChoice) => {
+      var actionObj = makeAction(newPercept, questionChoice);
+      console.log('[decide] constructed new action', actionObj);
+      sendActionToStore(response, actionObj);
+    });
   });
 
   app.listen(port, () => {

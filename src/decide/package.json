@@ -8,7 +8,8 @@
     "express": "^4.14.0",
     "lodash": "^4.15.0",
     "mongodb": "^2.2.8",
-    "request": "^2.74.0"
+    "request": "^2.74.0",
+    "webppl": "github:probmods/webppl#dev"
   },
   "devDependencies": {},
   "scripts": {
