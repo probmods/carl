@@ -1,10 +1,13 @@
 <html>
 
   <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.0/external/jquery/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.0/jquery-ui.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.0/jquery-ui.min.css"></script>
     <link rel="stylesheet" href="perceive.css" />
   </head>
 
-  <body>
+<body>
     <form method="POST" action="http://127.0.0.1:3005">
       <h3 id="question">{{}}</h3>
       <!-- hacky hidden field so we also get the question in the post request -->

@@ -32,3 +32,30 @@ td {
     text-align: center;
     width: 60px;
 }
+
+.slider {
+    width: 400;
+    margin: 10px;
+}
+
+/*align the left and right labels for the sliders properly*/
+.slider_table .left {
+    display: inline;
+    text-align: left;
+    float: left;
+}
+
+.slider_table .right {
+    display: inline;
+    text-align: right;
+    float: right;
+}
+
+.slider_target {
+    text-align: right;
+}
+
+.ui-slider-range {
+    /* you could have a "range" which makes the slider to the left of the handle a different color from the background */
+    background: transparent;
+}
