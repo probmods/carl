@@ -1,0 +1,125 @@
+// inputs
+// ------------------------------
+
+var mockParams = {mood: {driftRate: 20, observationNoise: 50},
+                  prod: {driftRate: 20, observationNoise: 50}};
+var params = globalStore['params'] || mockParams;
+
+var mockData = [{mood: 0.5, prod: 0.5},
+                {mood: 0.3},
+                undefined,
+                {prod: 0.6}];
+// munge mock data to vectors
+var mockDataMunged = map(function(d) {
+  return d === undefined ? undefined :
+    {mood: d.mood ? Vector([d.mood, 1 - d.mood]) : undefined,
+     prod: d.prod ? Vector([d.prod, 1 - d.prod]) : undefined}
+}, mockData);
+var data = globalStore['data'] || mockDataMunged;
+
+// ------------------------------
+
+
+var transition = function(prev, params){
+  var moodDrift = params.mood.driftRate,
+      prodDrift = params.prod.driftRate,
+      mood = prev.latent.mood,
+      prod = prev.latent.prod;
+
+  return {mood: dirichlet(T.mul(mood, moodDrift)),
+          prod: dirichlet(T.mul(prod, prodDrift))}
+}
+
+var Observation = function(val, noise) {
+  return Dirichlet({alpha: T.mul(val, noise)})
+}
+
+var makeTimeStep = function(params) {
+  return function(prev, obs) {
+    var nextLatent = transition(prev, params)
+    var obsMood = observe(Observation(nextLatent.mood, params.mood.observationNoise),
+                          obs ? obs.mood : undefined);
+
+    var obsProd = observe(Observation(nextLatent.prod, params.prod.observationNoise),
+                          obs ? obs.prod : undefined);
+
+    return {latent: nextLatent, obs: {mood: obsMood, prod: obsProd}}
+  }
+}
+
+var foldData = function(init, timeStep, observations) {
+  return reduce(function(x,acc){return acc.concat(timeStep(acc[acc.length-1], x))},
+                [init],
+                observations.reverse()) // TODO: eliminate reverse() by writing reduceRight
+}
+
+var timeStep = makeTimeStep(params);
+
+// updating posterior on local latents for a person given all their data
+var postLatent = function(data){
+  var timeStep = makeTimeStep(params)
+  return Infer({method: 'optimize', samples: 4000, steps: 3200},
+               function() {
+                 var initDist = {latent: {mood: dirichlet(Vector([1,1])),
+                                          prod: dirichlet(Vector([1,1]))}};
+                 var seq = foldData(initDist,
+                                    timeStep,
+                                    data);
+
+                 return _.last(seq)
+               })
+}
+
+var posterior = postLatent(data);
+
+var mean = function(xs) {
+  return sum(xs)/xs.length;
+}
+
+var variance = function(xs) {
+  var m = mean(xs);
+  return mean(map(function(x) { (x-m)*(x-m)},
+                  xs))
+}
+
+//posterior predictive for next K timesteps... uncertainty estimates for particular questions can be derived similarly
+var decide = function(latentDist, K) {
+  var timeStep = makeTimeStep(params)
+  var predictive = _.flatten(repeat(1000, function() {
+    var raw = foldData(sample(latentDist),
+                       timeStep,
+                       repeat(K, function(){ undefined }));
+
+    return mapIndexed(function(i, r) {
+      return {time: i,
+              mood: T.get(r.latent.mood, 0),
+              prod: T.get(r.latent.prod, 0)
+             }
+    }, raw.slice(1) /* NB */)
+  }));
+
+  // compute uncertainty about each question (here, a question is a product of time and type {mood, prod})
+  var uncertainties = _.flatten(map(
+    function(time) {
+      map(
+        function(type) {
+          var values = _.pluck(_.where(predictive,{time: time}), type);
+          var _variance = variance(values);
+          return {time: time,
+                  type: type,
+                  variance: _variance,
+                  quality: Math.pow(_variance, 1) / (Math.pow( time/K, 0.5) + 0.1)
+                 };
+        },
+        ['mood', 'prod'])
+    },
+    _.range(K)));
+
+  return uncertainties
+
+}
+
+var decided = decide(posterior, 4);
+var ranked = _.sortBy(decided, 'quality');
+console.log(ranked)
+_.last(ranked)
