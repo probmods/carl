@@ -58,7 +58,7 @@ var timeStep = makeTimeStep(params);
 // updating posterior on local latents for a person given all their data
 var postLatent = function(data){
   var timeStep = makeTimeStep(params)
-  return Infer({method: 'optimize', samples: 4000, steps: 3200},
+  return Infer({method: 'optimize', samples: 4000, steps: 5000},
                function() {
                  var initDist = {latent: {mood: dirichlet(Vector([1,1])),
                                           prod: dirichlet(Vector([1,1]))}};
@@ -108,7 +108,7 @@ var decide = function(latentDist, K) {
           return {time: time,
                   type: type,
                   variance: _variance,
-                  quality: Math.pow(_variance, 1) / (Math.pow( time/K, 0.5) + 0.1)
+                  quality: Math.pow(_variance, 1.35) * Math.pow(K - 1 + 0.01 - time, 1)
                  };
         },
         ['mood', 'prod'])
@@ -119,7 +119,7 @@ var decide = function(latentDist, K) {
 
 }
 
-var decided = decide(posterior, 4);
+var decided = decide(posterior, 5);
 var ranked = _.sortBy(decided, 'quality');
 console.log(ranked)
 _.last(ranked)
