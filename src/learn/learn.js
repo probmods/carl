@@ -6,7 +6,7 @@ const http = require('http');
 const path = require('path');
 const sendPostRequest = require('request').post;
 const webppl = require('webppl');
-var _ = require('lodash');
+const _ = require('lodash');
 
 const port = 3004;
 
@@ -23,15 +23,16 @@ function error(text) {
   console.log(makeMessage(text));
 }
 
-
 function initLearner() {
   log('compiling webppl code');
   const learnerCodePath = path.join(__dirname, 'learner.wppl');
-  const learnerCode = fs.readFileSync(learnerCodePath, 'utf8');
+  const learnerCode = fs.readFileSync(learnerCodePath, 'utf8');  
   const compiledModel = webppl.compile(learnerCode, {
     verbose: true,
     debug: true
   });
+  const headerPath = path.join(__dirname, 'registerParams.js');
+  webppl.requireHeader(headerPath);
   return compiledModel;
 }
 
