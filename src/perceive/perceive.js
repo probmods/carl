@@ -25,7 +25,7 @@ function serve() {
 
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
-
+  
   app.post('/', (request, response) => {
     if (!request.body) {
       return failure(response, 'need post request body');
@@ -56,7 +56,8 @@ function serve() {
   app.listen(port, () => {
     console.log(`[perceive] running at http://localhost:${port}`);
   });
-  
+
+  app.use(express.static(__dirname + '/static'));
 }
 
 if (require.main === module) {
