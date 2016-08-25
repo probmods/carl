@@ -119,7 +119,7 @@ function questionStringToID(questionString) {
 function IDToQuestionString(ID) {
   return (ID == "mood" ?
 	  "How good are you feeling?" :
-	  "prod");
+	  "How productive are you right now?");
 }
 
 function loadUserData(userEmail, callback) {
