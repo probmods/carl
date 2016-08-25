@@ -172,7 +172,7 @@ function serve() {
     });
 
     app.listen(port, () => {
-      log(`[store] running at http://localhost:${port}`);
+      log(`running at http://localhost:${port}`);
     });
 
   });
