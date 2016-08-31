@@ -8,12 +8,13 @@ const sendPostRequest = require('request').post;
 const app = express();
 const port = 3001;
 
-var sg = require('sendgrid')(process.env.SENDGRID_API_KEY);
-var sgMail = require('sendgrid').mail;
+const sg = require('sendgrid')(process.env.SENDGRID_API_KEY);
+const sgMail = require('sendgrid').mail;
 
-var CronJob = require('cron').CronJob;
+const CronJob = require('cron').CronJob;
 
-// NOTE: can factor out success/failure 
+
+// NOTE: can factor out success/failure
 function failure(response, msg) {
   const message = `[act] ${msg}`;
   console.error(message);
@@ -26,25 +27,24 @@ function success(response, msg) {
   return response.send(message);
 }
 
-// TODO: use real user email, server URL
 function notify(params) {
-  console.log("notifying");
-  var perceiveURL = ("http://localhost:3005/perceive.html"
-		     + "?question=" + encodeURI(params.question)
-		     + "&type=" + encodeURI(params.type)),
-      from_email = new sgMail.Email('mail@sampleme.io'),
-      to_email = new sgMail.Email(params.email),
-      subject = '[SampleMe]: ' + params.question,
-      content = new sgMail.Content('text/plain', perceiveURL),
-      mail = new sgMail.Mail(from_email, subject, to_email, content);
+  console.log('notifying');
+  const encQuestion = encodeURI(params.question);
+  const encType = encodeURI(params.type);
+  const perceiveURL = `http://localhost:3005/perceive.html?question=${encQuestion}&type=${encType}`;
+  const fromEmail = new sgMail.Email('mail@sampleme.io');
+  const toEmail = new sgMail.Email(params.email);
+  const subject = `[SampleMe]: ${params.question}`;
+  const content = new sgMail.Content('text/plain', perceiveURL);
+  const mail = new sgMail.Mail(fromEmail, subject, toEmail, content);
 
-  var request = sg.emptyRequest({
+  const request = sg.emptyRequest({
     method: 'POST',
     path: '/v3/mail/send',
     body: mail.toJSON()
   });
 
-  sg.API(request, function(error, response) {
+  sg.API(request, (error, response) => {
     console.log(response.statusCode);
     console.log(response.body);
     console.log(response.headers);
@@ -52,22 +52,11 @@ function notify(params) {
 }
 
 
-// function requestHandler(request, response) {
-//   var url = request.url;
-
-//   var urlSplit = url.split("/?");
-//   if (urlSplit.length == 1) {
-//     response.end('no action taken');
-//   } else {
-//     var paramsString = _.last(urlSplit),
-//         params = _.object(_.map(paramsString.split("&"),
-//                                 function(s) { return s.split("=") }));
-
 function scheduleJob(response, params) {
   // convert uid and time to integers
   params.question = params.questionData.headerString;
   params.type = params.questionType;
-  
+
   if (params.delta) {
     params.delta = parseInt(params.delta);
     params.time = _.now() + params.delta * 1000;
@@ -78,16 +67,16 @@ function scheduleJob(response, params) {
   success(response, 'successfully scheduled notification');
 
   // TODO: use real scheduled time
-  var soon = (_.now() + 1000);
-  var job = new CronJob({
+  const soon = (_.now() + 1000);
+  const job = new CronJob({
     cronTime: new Date(soon),
-    onTick: function() {
-      console.log('[act] asking user ' + params.email + ' question ' + params.question);
+    onTick() {
+      console.log(`[act] asking user ${params.email} question ${params.question}`);
       notify(params);
     },
     startNow: true, /* Start the job right now */
     timeZone: 'America/Los_Angeles'
-  });  
+  });
 }
 
 // Note: this can be factored out w/ data as a param
@@ -103,7 +92,7 @@ function registerActionHandler() {
       if (!error && res.statusCode === 200) {
         console.log('[act] successfully registered action handler');
       } else {
-        console.error(`[act] failed to register action handler, will try again`);
+        console.error('[act] failed to register action handler, will try again');
         setTimeout(registerActionHandler, 2000);
       }
     }
@@ -112,17 +101,18 @@ function registerActionHandler() {
 
 function serve() {
   if (process.env.SENDGRID_API_KEY === undefined) {
-    console.error('[act] ERROR: environment key SENDGRID_API_KEY not found; try running "source act/sendgrid.env" first');
-    return
+    console.error('[act] ERROR: environment key SENDGRID_API_KEY not found;' +
+                  ' try running "source act/sendgrid.env" first');
+    return;
   }
 
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
 
   registerActionHandler();
-  
+
   app.post('/handle-action', (request, response) => {
-    const data = request.body;    
+    const data = request.body;
     if (!data.ops || data.ops.length != 1) {
       return failure(response, "can't handle act: ${data}");
     }
@@ -130,14 +120,15 @@ function serve() {
     console.log('[act] observed new action', newAction);
     scheduleJob(response, newAction);
   });
-  
+
   app.listen(port, (err) => {
     if (err) {
-      return console.log('[act] something bad happened', err)
+      console.log('[act] something bad happened', err);
+      return;
     }
 
     console.log(`[act] running at http://localhost:${port}`)
-  })
+  });
 
 }
 
