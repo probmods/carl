@@ -12,20 +12,20 @@ const port = 3005;
 function failure(response, msg) {
   const message = `[perceive] ${msg}`;
   console.error(message);
-  return response.status(500).send(message);  
+  return response.status(500).send(message);
 }
 
 function success(response, msg) {
   const message = `[perceive] ${msg}`;
   console.log(message);
-  return response.send(message);    
+  return response.send(message);
 }
 
 function serve() {
 
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
-  
+
   app.post('/', (request, response) => {
     if (!request.body) {
       return failure(response, 'need post request body');
@@ -57,7 +57,7 @@ function serve() {
     console.log(`[perceive] running at http://localhost:${port}`);
   });
 
-  app.use(express.static(__dirname + '/static'));
+  app.use(express.static(`${__dirname}/static`));
 }
 
 if (require.main === module) {
