@@ -34,7 +34,7 @@ function log(text) {
   console.log(makeMessage(text));
 }
 
-// NOTE: can factor out success/failure 
+// NOTE: can factor out success/failure
 function failure(response, msg) {
   const message = `[decide] ${msg}`;
   console.error(message);
@@ -105,7 +105,7 @@ function loadParameters(callbacks) {
 // 1. retrieve all percepts for user with email given in newPercept
 // 2. condition model on percepts
 // 3. compute new question based on all data points for this user
-function inferNewAction (percepts, params, callback) {
+function inferNewAction(percepts, params, callback) {
   const prepared = webppl.prepare(
     compiledModel,
     (s, value) => {
@@ -125,10 +125,10 @@ function inferNewAction (percepts, params, callback) {
   // });
 }
 
-// TODO: actually use newPercept, do inference 
+// TODO: actually use newPercept, do inference
 function makeAction(newPercept, questionChoice) {
-  var notifyTime = new Date();
-  var headerString = IDToQuestionString(questionChoice.type);
+  const notifyTime = new Date();
+  const headerString = IDToQuestionString(questionChoice.type);
   return {
     questionType: "slider",
     questionData: {headerString: headerString},
@@ -139,7 +139,7 @@ function makeAction(newPercept, questionChoice) {
   };
 };
 
-function sendActionToStore (response, actionInfo) {
+function sendActionToStore(response, actionInfo) {
   sendPostRequest(
     'http://localhost:4000/db/insert',
     { json: actionInfo },
@@ -154,15 +154,15 @@ function sendActionToStore (response, actionInfo) {
 };
 
 function questionStringToID(questionString) {
-  return (questionString == "How good are you feeling?" ?
-	  "mood" :
-	  "prod");
+  return (questionString == 'How good are you feeling?' ?
+          'mood' :
+          'prod');
 }
 
 function IDToQuestionString(ID) {
-  return (ID == "mood" ?
-	  "How good are you feeling?" :
-	  "How productive are you right now?");
+  return (ID == 'mood' ?
+          'How good are you feeling?' :
+          'How productive are you right now?');
 }
 
 function preprocess(userEmail, body) {
@@ -171,8 +171,8 @@ function preprocess(userEmail, body) {
     return _.sortBy(value, 'datetime');
   });
   const reformattedData = _.map(sortedData[userEmail], (observation) => {
-    return _.fromPairs([[questionStringToID(observation["question"]),
-			 observation["response"]]]);
+    return _.fromPairs([[questionStringToID(observation['question']),
+                         observation['response']]]);
   });
   return reformattedData;
 }
@@ -185,7 +185,7 @@ function loadUserData(userEmail, callback) {
     (error, res, body) => {
       if (!error && res && res.statusCode === 200) {
         console.log('successfully read user data from db');
-	var processedData = preprocess(userEmail, body);
+        var processedData = preprocess(userEmail, body);
         callback(processedData);
       } else {
         console.log(`failed to read user data from db: ${res ? res.statusCode : ''} ${error}`);
@@ -195,18 +195,18 @@ function loadUserData(userEmail, callback) {
 }
 
 function serve() {
-  
+
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
-  
+
   registerPerceptHandler();
-  
+
   app.post('/handle-percept', (request, response) => {
-    const data = request.body;    
+    const data = request.body;
     if (!data.ops || data.ops.length != 1) {
       return failure(response, `can't handle percept: ${data}`);
     }
-    console.log("[decide] Handling percept");		    
+    console.log("[decide] Handling percept");
     const newPercept = data.ops[0];
     console.log(newPercept.email);
     loadParameters({
