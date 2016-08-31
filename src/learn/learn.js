@@ -40,19 +40,15 @@ function questionStringToID(questionString) {
   return (questionString === "How good are you feeling?" ? "mood" : "prod");
 }
 
-function IDToQuestionString(ID) {
-  return (ID === "mood" ? "How good are you feeling?" : "How productive are you right now?");
-}
-
 function preprocess(body) {
   const groupedData = _.groupBy(body, 'email');
-  const sortedData = _.mapValues(groupedData, (value, key) => {
+  const sortedData = _.mapValues(groupedData, (value) => {
     return _.sortBy(value, 'datetime');
   });
   const reformattedData = _.mapValues(sortedData, (observations) => {
     return observations.map((observation) => {
-      return _.fromPairs([[questionStringToID(observation["question"]),
-                           observation["response"]]]);
+      return _.fromPairs([[questionStringToID(observation.question),
+                           observation.response]]);
     });
   });
   return reformattedData;
@@ -144,6 +140,7 @@ function storeParameters(params, callbacks) {
   );
 }
 
+// FIXME: callback hell
 function runLearner(model) {
   function failure() {
     log('learner failed to complete iteration, starting over');
