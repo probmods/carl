@@ -17,7 +17,7 @@ const handlers = {};
 
 
 function makeMessage(text) {
-  return colors.blue('[store]') + ` ${text}`;;
+  return `${colors.blue('[store]')} ${text}`;
 }
 
 function log(text) {
