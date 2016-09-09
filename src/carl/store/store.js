@@ -1,43 +1,14 @@
 'use strict'; // @flow
 
 import _ from 'lodash';
-import mongodb from 'mongodb';
+import mongo from './mongo';
 
 import http from '../common/http';
 import settings from '../common/settings';
-import util from '../common/util';
+import { log, error, httpSuccess, httpFailure } from './util';
 
 
-const log = util.makeLogger({
-  prefix: 'store',
-  prefixColor: 'blue'
-});
-
-const error = util.makeLogger({
-  prefix: 'store',
-  prefixColor: 'blue',
-  textColor: 'red'
-});
-
-const httpSuccess = http.makeTextResponder(200, log);
-
-const httpFailure = http.makeTextResponder(500, error);
-
-
-function mongoConnectWithRetry(client, delayInMilliseconds, callback) {
-  client.connect(settings.mongoURL, (err, db) => {
-    if (err) {
-      error(`error connecting to mongodb: ${err}`);
-      setTimeout(() => mongoConnectWithRetry(client, delayInMilliseconds, callback), delayInMilliseconds);
-    } else {
-      log('connected succesfully to mongodb');
-      callback(db);
-    }
-  });
-}
-
-
-function serveWithDatabase(database) {
+function serveWithDatabase(database: MongoDB) {
 
   const handlers = {};
   
@@ -81,8 +52,8 @@ function serveWithDatabase(database) {
 }
 
 function serve(): void {
-  const client = mongodb.MongoClient;
-  mongoConnectWithRetry(client, 2000, serveWithDatabase);
+  const client = mongo.db.MongoClient;
+  mongo.connectWithRetry(client, 2000, serveWithDatabase);
 }
 
 
