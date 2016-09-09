@@ -1,6 +1,8 @@
 Install:
 
-    npm install  // currently required in each sub-directory
+    npm install
+    cd common; npm install; cd ..
+    cd store; npm install; cd ..
 
 Run the type checker:
 
