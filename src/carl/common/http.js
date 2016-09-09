@@ -33,6 +33,7 @@ function checkPOSTRequestHasFields<T>(request: Request, requiredFields: [string]
 function makeTextResponder(statusCode: number, logger: Logger) {
   return (response: Response, text: string): Response => {
     logger(text);
+    // $FlowIssue: method `status` cannot be called on number?    
     return response.status(statusCode).send(text);
   };
 }

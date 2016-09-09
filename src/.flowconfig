@@ -1,2 +1,6 @@
+[options]
+suppress_comment= \\(.\\|\n\\)*\\$FlowIssue
+
 [libs]
+carl/common/typedefs/
 carl/common/typedefs/npm/
