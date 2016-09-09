@@ -7,8 +7,6 @@ import http from '../common/http';
 import settings from '../common/settings';
 import util from '../common/util';
 
-import type { RequestWithBody } from '../common/http';
-
 
 const log = util.makeLogger({
   prefix: 'store',

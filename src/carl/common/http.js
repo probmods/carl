@@ -4,12 +4,8 @@ import _ from 'lodash';
 import bodyParser from 'body-parser';
 import express from 'express';
 
-import type { Logger } from './util';
+import type { Logger } from '../common/util';
 
-
-export class RequestWithBody extends Request {
-  body: {[key: string]: string}
-}
 
 type ServerOptions = {
   get?: { [key: string]: (request: Request, response: Response) => Response },
