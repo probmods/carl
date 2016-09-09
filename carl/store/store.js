@@ -1,5 +1,6 @@
 'use strict'; // @flow
 
+const _ = require('lodash');
 const mongodb = require('mongodb');
 
 const settings = require('../common/settings.js');
@@ -17,6 +18,10 @@ const error = util.makeLogger({
   textColor: 'red'
 });
 
+const httpSuccess = util.makeHTTPResponder(200, log);
+
+const httpFailure = util.makeHTTPResponder(500, error);
+
 
 function mongoConnectWithRetry(client, delayInMilliseconds, callback) {
   client.connect(settings.mongoURL, (err, db) => {
@@ -31,10 +36,38 @@ function mongoConnectWithRetry(client, delayInMilliseconds, callback) {
 }
 
 
+function checkRequestHasFields(request, response, requiredFields, callback) {
+  if (requiredFields.length === 0) {
+    return callback(request.body);
+  }
+  if (!request.body) {
+    return httpFailure(response, `POST request body not found`);
+  }
+  for (var i=0; i<requiredFields.length; i++) {
+    const field = requiredFields[i];
+    if (request.body[field] === undefined) {
+      return httpFailure(response, `required field '${field}' not found`);
+    }
+  }
+  return callback(request.body);
+}
+
+
 function serveWithDatabase(database) {
 
+  const handlers = {};
+  
   function registerHandler(request, response) {
-    error('register-handler not implemented');
+    checkRequestHasFields(request, response, ['collection', 'callbackURL'], ({ collection, callbackURL }) => {
+      if (handlers[collection] === undefined) {
+        handlers[collection] = [];
+      }
+      if (_.includes(handlers[collection], callbackURL)) {
+        return httpSuccess(response, `handler for ${collection} already registered: ${callbackURL}`);
+      }
+      handlers[collection].push(callbackURL);
+      return httpSuccess(response, `added handler for ${collection}: ${callbackURL}`);
+    });
   }
 
   function findOne(request, response) {
