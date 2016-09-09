@@ -1,9 +1,11 @@
 'use strict'; // @flow
 
 import _ from 'lodash';
-import mongo from './mongo';
+import path from 'path';
+import fs from 'fs'
 
 import http from '../common/http';
+import mongo from './mongo';
 import settings from '../common/settings';
 import { log, error, httpSuccess, httpFailure } from './util';
 
@@ -24,6 +26,22 @@ function serveWithDB(db: MongoDB) {
     const projection: Object = request.body.projection || {};
     const collection = db.collection(collectionName);
     return { query, projection, collection };
+  }
+
+  function addFixtures() {
+    const fixturePath = path.join(settings.appDirectory, 'fixtures.json');
+    if (fs.existsSync(fixturePath)) { 
+      const fixtures = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
+      _.forEach(fixtures, (entries, collectionName) => {
+        const collection = db.collection(collectionName);
+        collection.count((err, count) => {
+          if (!err && count === 0) {
+            log(`inserting fixtures into ${collectionName}`);
+            collection.insertMany(entries);
+          }
+        });
+      }); 
+    }      
   }
 
   function registerHandler(request: RequestWithBody, response: Response): Response {
@@ -100,9 +118,11 @@ function serveWithDB(db: MongoDB) {
     });
   }
 
-  const port = settings.addresses.store.port;
-  const hostname = settings.addresses.store.hostname;
+  addFixtures();
 
+  const port = settings.addresses.store.port;
+  const hostname = settings.addresses.store.hostname;  
+  
   http.runServer(
     { post: { registerHandler, findOne, find, insert }, port },
     () => { log(`running at http://${hostname}:${port}`); });

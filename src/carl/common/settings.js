@@ -1,9 +1,9 @@
 'use strict'; // @flow
 
+import path from 'path';
+
 
 const appName = 'simple-example';
-
-// compute app dir here
 
 const settings = {
   mongoURL: `mongodb://localhost:27017/${appName}`,
@@ -12,7 +12,8 @@ const settings = {
       hostname: 'localhost',
       port: 4000
     }
-  }
+  },
+  appDirectory: path.join(__dirname, '../..', 'applications/', appName)
 };
 
 

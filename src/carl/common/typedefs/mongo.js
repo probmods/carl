@@ -11,9 +11,11 @@ declare class MongoCollection {
     name: string,
     dbName: string
   };
-  findOne<T>(query: Object, projection: Object, callback: (err: mixed, data: Object) => T): T;
+  findOne<T>(query: Object, projection: Object, callback: ?(err: mixed, data: Object) => T): T;
   find(query: Object, projection: Object): MongoResult;
-  insert<T>(data: Object, callback: (err: mixed, result: Object) => T): T;
+  insert<T>(data: Object, callback: ?(err: mixed, result: Object) => T): T;
+  insertMany<T>(data: Array<Object>, callback: ?(err: mixed, result: Object) => T): T;
+  count<T>(callback: ?(err: mixed, count: number) => T): T;
 }
 
 declare class MongoResult {
