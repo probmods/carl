@@ -48,7 +48,7 @@ function serveWithDB(db: MongoDB) {
           `${JSON.stringify(query)} and projection ${JSON.stringify(projection)}`);
       collection.findOne(query, projection, (err: mixed, data: Object) => {
         if (err) {
-          httpFailure('error executing findOne');
+          httpFailure(response, 'error executing findOne');
         } else {
           response.json(data);
         }
@@ -63,16 +63,30 @@ function serveWithDB(db: MongoDB) {
           `${JSON.stringify(query)} and projection ${JSON.stringify(projection)}`);
       collection.find(query, projection).toArray((err: mixed, data: Array<Object>) => {
         if (err) {
-          httpFailure('error executing find');
+          return httpFailure(response, 'error executing find');  // Returns Response
         } else {
-          response.json(data);
+          return response.json(data);  // Returns Promise
         }
       });
     });
   }
 
   function insert(request: RequestWithBody, response: Response): Response {
-    return httpFailure(response, 'insert not implemented');
+    return http.checkRequestFields(request, ['collection'], makeFieldFailure(response), () => {
+      const collectionName = request.body.collection;
+      log(`got request to insert into ${collectionName}`);
+      const collection = db.collection(collectionName);
+      const data = _.omit(request.body, ['collection']);
+      log(`inserting data: ${JSON.stringify(data)}`);
+      return collection.insert(data, (err, result) => {
+        if (err) {
+          return httpFailure(response, `error inserting data: ${JSON.stringify(err)}`);
+        } else {
+          // TODO: Call handlers here
+          return httpSuccess(response, `successfully inserted data. result: ${JSON.stringify(result)}`);
+        }
+      });
+    });
   }
 
   const port = settings.addresses.store.port;

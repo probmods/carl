@@ -11,10 +11,11 @@ declare class MongoCollection {
     name: string,
     dbName: string
   };
-  findOne(query: Object, projection: Object, callback: (err: mixed, data: Object) => void): void;
+  findOne<T>(query: Object, projection: Object, callback: (err: mixed, data: Object) => T): T;
   find(query: Object, projection: Object): MongoResult;
+  insert<T>(data: Object, callback: (err: mixed, result: Object) => T): T;
 }
 
 declare class MongoResult {
-  toArray(callback: (err: mixed, data: Array<Object>) => void): void;
+  toArray<T>(callback: (err: mixed, data: Array<Object>) => T): T;
 }

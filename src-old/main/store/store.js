@@ -150,7 +150,7 @@ function serve() {
       log(`inserting data: ${JSON.stringify(data)}`);
       collection.insert(data, (err, result) => {
         if (err) {
-          return failure(response, `error inserting data: ${error}`);
+          return failure(response, `error inserting data: ${err}`);
         } else {
           // Success
           if (handlers[collectionName]) {
