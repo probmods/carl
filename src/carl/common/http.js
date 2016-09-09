@@ -3,6 +3,7 @@
 import _ from 'lodash';
 import bodyParser from 'body-parser';
 import express from 'express';
+import { post as _sendPOSTRequest } from 'request';
 
 import type { Logger } from '../common/util';
 
@@ -51,9 +52,13 @@ function runServer(options: ServerOptions, callback: () => void) {
   app.listen(options.port, callback); 
 }
 
+function sendPOSTRequest<T>(url: string, data: Object, callback: (error: mixed, result: ?Object, body: mixed) => T) {
+  return _sendPOSTRequest(url, { json: data }, callback);
+}
 
 export default {
   checkRequestFields,
   makeTextResponder,
-  runServer  
+  runServer,
+  sendPOSTRequest
 };

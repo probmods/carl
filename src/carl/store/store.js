@@ -10,7 +10,7 @@ import { log, error, httpSuccess, httpFailure } from './util';
 
 function serveWithDB(db: MongoDB) {
 
-  const handlers = {};
+  const handlers: {[key: string]: [string]} = {};
 
   function makeFieldFailure(response: Response) {
     return (message: string): Response => {
@@ -25,7 +25,7 @@ function serveWithDB(db: MongoDB) {
     const collection = db.collection(collectionName);
     return { query, projection, collection };
   }
-  
+
   function registerHandler(request: RequestWithBody, response: Response): Response {
     const success = (): Response => {
       const { collection, callbackURL } = request.body;
@@ -36,7 +36,7 @@ function serveWithDB(db: MongoDB) {
         return httpSuccess(response, `handler for ${collection} already registered: ${callbackURL}`);
       }
       handlers[collection].push(callbackURL);
-      return httpSuccess(response, `added handler for ${collection}: ${callbackURL}`);      
+      return httpSuccess(response, `added handler for ${collection}: ${callbackURL}`);
     };
     return http.checkRequestFields(request, ['collection', 'callbackURL'], makeFieldFailure(response), success);
   }
@@ -82,7 +82,18 @@ function serveWithDB(db: MongoDB) {
         if (err) {
           return httpFailure(response, `error inserting data: ${JSON.stringify(err)}`);
         } else {
-          // TODO: Call handlers here
+          if (handlers[collectionName]) {
+            handlers[collectionName].forEach((callbackURL) => {
+              log(`calling ${collectionName} handler: ${callbackURL}`);
+              http.sendPOSTRequest(callbackURL, result, (err2, result2, body) => {
+                if (!err2 && result2 && result2.statusCode === 200) {
+                  log(`successfully notified handler ${callbackURL}`);
+                } else {
+                  error(`error notifying ${callbackURL}: ${err2} ${body}`);
+                }                
+              });
+            });
+          };
           return httpSuccess(response, `successfully inserted data. result: ${JSON.stringify(result)}`);
         }
       });
@@ -95,7 +106,7 @@ function serveWithDB(db: MongoDB) {
   http.runServer(
     { post: { registerHandler, findOne, find, insert }, port },
     () => { log(`running at http://${hostname}:${port}`); });
-  
+
 }
 
 function serve(): void {
