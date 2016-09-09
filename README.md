@@ -9,3 +9,7 @@ Run the type checker:
 Run:
 
     babel-node main.js
+
+Requirements:
+
+    mongodb on port 27017
