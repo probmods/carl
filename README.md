@@ -1,6 +1,6 @@
 Install:
 
-    npm install:
+    npm install  // currently required in each sub-directory
 
 Run the type checker:
 
@@ -12,4 +12,4 @@ Run:
 
 Requirements:
 
-    mongodb on port 27017
+    mongodb

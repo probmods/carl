@@ -1,5 +1,4 @@
-'use strict';
-// @flow
+'use strict'; // @flow
 
 const colors = require('colors/safe');
 
