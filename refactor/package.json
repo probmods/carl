@@ -1,0 +1,17 @@
+{
+  "name": "scrambler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "dependencies": {},
+  "devDependencies": {
+    "babel-plugin-transform-flow-strip-types": "^6.14.0",
+    "flow-bin": "^0.32.0"
+  },
+  "scripts": {
+    "flow": "flow; test $? -eq 0 -o $? -eq 2"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
