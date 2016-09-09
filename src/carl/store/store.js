@@ -36,12 +36,12 @@ function mongoConnectWithRetry(client, delayInMilliseconds, callback) {
 }
 
 
-function checkRequestHasFields(request, response, requiredFields, callback) {
+function checkRequestHasFields(request: Request, response: Response, requiredFields: [string], callback: ((body: Object) => any)) {
   if (requiredFields.length === 0) {
-    return callback(request.body);
+    return callback({});
   }
-  if (!request.body) {
-    return httpFailure(response, `POST request body not found`);
+  if (!request.body || !(request.body instanceof Object)) {
+    return httpFailure(response, 'POST request body not found');
   }
   for (var i=0; i<requiredFields.length; i++) {
     const field = requiredFields[i];
@@ -57,8 +57,8 @@ function serveWithDatabase(database) {
 
   const handlers = {};
   
-  function registerHandler(request, response) {
-    checkRequestHasFields(request, response, ['collection', 'callbackURL'], ({ collection, callbackURL }) => {
+  function registerHandler(request: Request, response: Response): Response {
+    return checkRequestHasFields(request, response, ['collection', 'callbackURL'], ({ collection, callbackURL }) => {
       if (handlers[collection] === undefined) {
         handlers[collection] = [];
       }
@@ -70,16 +70,16 @@ function serveWithDatabase(database) {
     });
   }
 
-  function findOne(request, response) {
-    error('findOne not implemented');
+  function findOne(request: Request, response: Response): Response {
+    return httpFailure(response, 'findOne not implemented');
   }
 
-  function find(request, response) {
-    error('find not implemented');
+  function find(request: Request, response: Response): Response {
+    return httpFailure(response, 'find not implemented');
   }
 
-  function insert(request, response) {
-    error('insert not implemented');
+  function insert(request: Request, response: Response): Response {
+    return httpFailure(response, 'insert not implemented');
   }
 
   const port = settings.addresses.store.port;

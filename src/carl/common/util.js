@@ -6,27 +6,32 @@ const bodyParser = require('body-parser');
 const express = require('express');
 
 
-function makeLogger(options: Object): (() => void) {
+type ServerOptions = {
+  get?: { [key: string]: (request: Request, response: Response) => Response },
+  post?: { [key: string]: (request: Request, response: Response) => Response },
+  port: number
+};
+
+type Logger = (text: string) => void;
+
+
+function makeLogger(options: Object): Logger {
   const prefix = options.prefix || 'misc';
   const prefixColor = options.prefixColor || 'white';
   const textColor = options.textColor || 'white';
-  return (text) => {
+  return (text: string) => {
     const bracketedPrefix = `[${prefix}]`;
     console.log(`${colors[prefixColor](bracketedPrefix)} ${colors[textColor](text)}`);
   };
 }
 
-const log = makeLogger({ prefix: 'util', prefixColor: 'gray' });
-
-function hi(x: string): void {
-  log(x);
+function makeHTTPResponder(statusCode: number, logger: Logger) {
+  return (response: Response, text: string): Response => {
+    logger(text);
+    // return response.status(statusCode).send(text);
+    return response;
+  };
 }
-
-type ServerOptions = {
-  get?: { [key: string]: () => void },
-  post?: { [key: string]: () => void },
-  port: number
-};
 
 function runServer(options: ServerOptions, callback: () => void) {
   const app = express();
@@ -42,8 +47,11 @@ function runServer(options: ServerOptions, callback: () => void) {
 }
 
 
+const log = makeLogger({ prefix: 'util', prefixColor: 'gray' });
+
+
 module.exports = {
-  hi,
   makeLogger,
+  makeHTTPResponder,
   runServer
 };
