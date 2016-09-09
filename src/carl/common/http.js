@@ -8,13 +8,13 @@ import type { Logger } from '../common/util';
 
 
 type ServerOptions = {
-  get?: { [key: string]: (request: Request, response: Response) => Response },
-  post?: { [key: string]: (request: RequestWithBody, response: Response) => Response },
+  get?: { [key: string]: (request: Request, response: Response) => ?Response },
+  post?: { [key: string]: (request: RequestWithBody, response: Response) => ?Response },
   port: number
 };
 
 
-function checkPOSTRequestHasFields<T>(request: Request, requiredFields: [string], success: () => T, failure: (message: string) => T): T {
+function checkRequestFields<T>(request: Request, requiredFields: [string], failure: (message: string) => T, success: () => T): T {
   if (requiredFields.length === 0) {
     return success();
   }
@@ -53,7 +53,7 @@ function runServer(options: ServerOptions, callback: () => void) {
 
 
 export default {
-  checkPOSTRequestHasFields,
+  checkRequestFields,
   makeTextResponder,
   runServer  
 };
