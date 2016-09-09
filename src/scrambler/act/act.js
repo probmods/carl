@@ -113,8 +113,8 @@ function serve() {
 
   app.post('/handle-action', (request, response) => {
     const data = request.body;
-    if (!data.ops || data.ops.length != 1) {
-      return failure(response, "can't handle act: ${data}");
+    if (!data.ops || data.ops.length !== 1) {
+      return failure(response, `can't handle act: ${data}`);
     }
     const newAction = data.ops[0];
     console.log('[act] observed new action', newAction);
