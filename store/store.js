@@ -1,6 +1,5 @@
 'use strict'; // @flow
 
-const express = require('express');
 const mongodb = require('mongodb');
 
 const settings = require('../common/settings.js');
@@ -50,18 +49,12 @@ function serveWithDatabase(database) {
     error('insert not implemented');
   }
 
-  const app = express();
   const port = settings.addresses.store.port;
   const hostname = settings.addresses.store.hostname;
-  
-  app.post('/register-handler', registerHandler);
-  app.post('/findOne', findOne);
-  app.post('/find', find);
-  app.post('/insert', insert);
-  
-  app.listen(port, () => {
-    log(`running at http://${hostname}:${port}`);
-  });  
+
+  util.runServer(
+    { post: { registerHandler, findOne, find, insert }, port },
+    () => { log(`running at http://${hostname}:${port}`); });
   
 }
 

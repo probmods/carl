@@ -3,6 +3,8 @@
 
 const appName = 'simple-example';
 
+// compute app dir here
+
 const settings = {
   mongoURL: `mongodb://localhost:27017/${appName}`,
   addresses: {
