@@ -8,7 +8,7 @@ Install:
 
 Run the type checker:
 
-    watch npm run-script flow
+    watch --color "node_modules/flow-bin/vendor/flow status --color always"
 
 Run:
 
