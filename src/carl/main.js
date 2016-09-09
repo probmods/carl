@@ -1,6 +1,6 @@
 'use strict'; // @flow
 
-const store = require('./store/store.js');
+import store from './store/store';
 
 
 function main() {

@@ -1,10 +1,13 @@
 'use strict'; // @flow
 
-const _ = require('lodash');
-const mongodb = require('mongodb');
+import _ from 'lodash';
+import mongodb from 'mongodb';
 
-const settings = require('../common/settings.js');
-const util = require('../common/util.js');
+import http from '../common/http';
+import settings from '../common/settings';
+import util from '../common/util';
+
+import type { RequestWithBody } from '../common/http';
 
 
 const log = util.makeLogger({
@@ -18,9 +21,9 @@ const error = util.makeLogger({
   textColor: 'red'
 });
 
-const httpSuccess = util.makeHTTPResponder(200, log);
+const httpSuccess = http.makeTextResponder(200, log);
 
-const httpFailure = util.makeHTTPResponder(500, error);
+const httpFailure = http.makeTextResponder(500, error);
 
 
 function mongoConnectWithRetry(client, delayInMilliseconds, callback) {
@@ -36,29 +39,13 @@ function mongoConnectWithRetry(client, delayInMilliseconds, callback) {
 }
 
 
-function checkRequestHasFields(request: Request, response: Response, requiredFields: [string], callback: ((body: Object) => any)) {
-  if (requiredFields.length === 0) {
-    return callback({});
-  }
-  if (!request.body || !(request.body instanceof Object)) {
-    return httpFailure(response, 'POST request body not found');
-  }
-  for (var i=0; i<requiredFields.length; i++) {
-    const field = requiredFields[i];
-    if (request.body[field] === undefined) {
-      return httpFailure(response, `required field '${field}' not found`);
-    }
-  }
-  return callback(request.body);
-}
-
-
 function serveWithDatabase(database) {
 
   const handlers = {};
   
-  function registerHandler(request: Request, response: Response): Response {
-    return checkRequestHasFields(request, response, ['collection', 'callbackURL'], ({ collection, callbackURL }) => {
+  function registerHandler(request: RequestWithBody, response: Response): Response {
+    const success = (): Response => {
+      const { collection, callbackURL } = request.body;
       if (handlers[collection] === undefined) {
         handlers[collection] = [];
       }
@@ -66,26 +53,30 @@ function serveWithDatabase(database) {
         return httpSuccess(response, `handler for ${collection} already registered: ${callbackURL}`);
       }
       handlers[collection].push(callbackURL);
-      return httpSuccess(response, `added handler for ${collection}: ${callbackURL}`);
-    });
+      return httpSuccess(response, `added handler for ${collection}: ${callbackURL}`);      
+    };
+    const failure = (message: string): Response => {
+      return httpFailure(response, message);
+    };
+    return http.checkPOSTRequestHasFields(request, ['collection', 'callbackURL'], success, failure);
   }
 
-  function findOne(request: Request, response: Response): Response {
+  function findOne(request: RequestWithBody, response: Response): Response {
     return httpFailure(response, 'findOne not implemented');
   }
 
-  function find(request: Request, response: Response): Response {
+  function find(request: RequestWithBody, response: Response): Response {
     return httpFailure(response, 'find not implemented');
   }
 
-  function insert(request: Request, response: Response): Response {
+  function insert(request: RequestWithBody, response: Response): Response {
     return httpFailure(response, 'insert not implemented');
   }
 
   const port = settings.addresses.store.port;
   const hostname = settings.addresses.store.hostname;
 
-  util.runServer(
+  http.runServer(
     { post: { registerHandler, findOne, find, insert }, port },
     () => { log(`running at http://${hostname}:${port}`); });
   
@@ -101,6 +92,6 @@ if ((require: any).main === module) {
   serve();
 }
 
-module.exports = {
+export default {
   serve
 };
