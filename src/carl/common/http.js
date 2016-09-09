@@ -42,10 +42,10 @@ function runServer(options: ServerOptions, callback: () => void) {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
   _.mapValues(options.get, (value, key) => {
-    app.get(key, value);
+    app.get(`/${key}`, value);
   });  
   _.mapValues(options.post, (value, key) => {
-    app.post(key, value);
+    app.post(`/${key}`, value);
   });
   app.listen(options.port, callback); 
 }
