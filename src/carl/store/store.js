@@ -81,9 +81,9 @@ function serveWithDB(db: MongoDB) {
           `${JSON.stringify(query)} and projection ${JSON.stringify(projection)}`);
       collection.find(query, projection).toArray((err: mixed, data: Array<Object>) => {
         if (err) {
-          return httpFailure(response, 'error executing find');  // Returns Response
+          httpFailure(response, 'error executing find');  // Response
         } else {
-          return response.json(data);  // Returns Promise
+          response.json(data);  // Promise
         }
       });
     });
