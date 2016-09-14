@@ -11,6 +11,10 @@ const settings = {
     store: {
       hostname: 'localhost',
       port: 4000
+    },
+    perceive: {
+      hostname: 'localhost',
+      port: 3001
     }
   },
   appDirectory: path.join(__dirname, '../..', 'applications/', appName)
