@@ -1,0 +1,73 @@
+// --------------------------------------------------------------------
+// Generic stuff here; (move to common/generic.wppl?)
+
+// TODO: eliminate reverse() by writing reduceRight
+var foldData = function(init, timeStep, observations) {
+  return reduce(
+    function(x, acc){
+      return acc.concat(timeStep(acc[acc.length-1], x));
+    },
+    [init],
+    observations.reverse())
+};
+
+var model = function(stdParams) {
+  var timeStep = makeTimeStep(stdParams);
+  mapData(
+    { data: dataSequences },
+    function(sequence) {
+      var initialState = sampleInitialState(stdParams);
+      return foldData(initialState,
+                      timeStep,
+                      sequence);
+    }
+  );
+};
+
+
+// --------------------------------------------------------------------
+// Application-specific stuff here
+
+var structureParams = function(rawParams) {
+  return {
+    theta: rawParams[0]
+  };
+};
+
+// We ignore the previous (empty) state, coin flips are i.i.d.
+var makeTimeStep = function(stdParams) {
+  var theta = stdParams.theta;
+  return function(state, observation) {
+    var outcome = observe(Bernoulli(theta), observation.outcome);
+    return {
+      outcome: outcome
+    };
+  };
+};
+
+// We don't have per-coin persistent state
+var sampleInitialState = function(stdParams) {
+  return {};
+};
+
+
+// --------------------------------------------------------------------
+// Learner-specific stuff below here; move to learn.wppl
+
+var updateParams = function(rawParams, dataSequences) {
+  return Optimize(
+    function() {
+      var regParams = registerParamsByName('globalParams', rawParams);
+      var stdParams = structureParams(regParams);
+      model(stdParams);
+    },
+    { estimator: 'ELBO', steps: 500, stepSize: 0.01 })
+};
+
+var newParams = updateParams(globalStore.rawParams, globalStore.dataSequences);
+
+var output = {
+  newParams: newParams
+};
+
+output;
