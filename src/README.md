@@ -7,10 +7,13 @@ Requirements:
 Install:
 
     npm install
+    cd carl
     cd common; npm install; cd ..
     cd store; npm install; cd ..
+    cd learn; npm install; cd ..
+    cd ..
 
-Adjust `common/settings.js`.
+Adjust `carl/common/settings.js`.
 
 Run the type checker in watch mode:
 
@@ -18,4 +21,4 @@ Run the type checker in watch mode:
 
 Run all servers:
 
-    babel-node main.js
+    babel-node carl/main.js
