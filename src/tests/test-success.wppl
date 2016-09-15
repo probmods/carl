@@ -1,0 +1,15 @@
+var dist = Infer({ method: 'enumerate'}, function() {
+  var x = flip(.2);
+  var y = flip(.5);
+  condition(x || y);
+  return [x, y];
+});
+
+var output = {
+  someNumber: 123,
+  someString: 'foo',
+  someList: [123, 'foo'],
+  someDistribution: dist
+};
+
+output;
