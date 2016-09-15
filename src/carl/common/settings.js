@@ -4,6 +4,8 @@ import path from 'path';
 
 
 const appName = 'simple-example';
+const appDirectory = path.join(__dirname, '../..', 'applications/', appName);
+const app = require(path.join(appDirectory, 'app.js'));
 
 const settings = {
   mongoURL: `mongodb://localhost:27017/${appName}`,
@@ -17,7 +19,8 @@ const settings = {
       port: 3001
     }
   },
-  appDirectory: path.join(__dirname, '../..', 'applications/', appName)
+  appDirectory,
+  app
 };
 
 

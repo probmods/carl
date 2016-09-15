@@ -3,7 +3,7 @@
 This is a toy application that exercises all parts of Carl. We're modeling the following situation: We're observing tosses from multiple coins (numbered 0..k). We're trying to infer locally the weight of each coin, and globally a hyperparameter theta that correlates the coin weights.
 
 - Perceive:
-  - Receive POST data such as `{ coin: 3, outcome: 0 }` or `{ coin: 3, outcome: 1 }` at `127.0.0.1:3001/addPercept`.
+  - Receive POST data such as `{ coinNumber: 3, outcome: 0 }` or `{ coinNumber: 3, outcome: 1 }` at `127.0.0.1:3001/addPercept`.
   - Add current datetime, then send on to store for collection `percepts`
 
 - Store:

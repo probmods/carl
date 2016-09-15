@@ -62,7 +62,7 @@ function serveWithDB(db: MongoDB) {
   function findOne(request: RequestWithBody, response: Response): ?Response {
     return http.checkRequestFields(request, ['collection'], makeFieldFailure(response), () => {
       const { collection, query, projection } = parseQuery(request);
-      log(`got request to findOne in ${collection.s.name} with query ` +
+      log(`got request to find one doc in ${collection.s.name} with query ` +
           `${JSON.stringify(query)} and projection ${JSON.stringify(projection)}`);
       collection.findOne(query, projection, (err: mixed, data: Object) => {
         if (err) {
@@ -77,7 +77,7 @@ function serveWithDB(db: MongoDB) {
   function find(request: RequestWithBody, response: Response): ?Response {
     return http.checkRequestFields(request, ['collection'], makeFieldFailure(response), () => {
       const { collection, query, projection } = parseQuery(request);
-      log(`got request to find in ${collection.s.name} with query ` +
+      log(`got request to find data in ${collection.s.name} with query ` +
           `${JSON.stringify(query)} and projection ${JSON.stringify(projection)}`);
       collection.find(query, projection).toArray((err: mixed, data: Array<Object>) => {
         if (err) {
@@ -92,7 +92,7 @@ function serveWithDB(db: MongoDB) {
   function insert(request: RequestWithBody, response: Response): Response {
     return http.checkRequestFields(request, ['collection'], makeFieldFailure(response), () => {
       const collectionName = request.body.collection;
-      log(`got request to insert into ${collectionName}`);
+      log(`got request to insert data into ${collectionName}`);
       const collection = db.collection(collectionName);
       const data = _.omit(request.body, ['collection']);
       log(`inserting data: ${JSON.stringify(data)}`);
