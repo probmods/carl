@@ -17,6 +17,10 @@ const settings = {
     perceive: {
       hostname: 'localhost',
       port: 3001
+    },
+    learn: {
+      hostname: 'localhost',
+      port: 3002
     }
   },
   appDirectory,
