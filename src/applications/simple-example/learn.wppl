@@ -10,7 +10,8 @@ var updateParams = function(params, dataSequences) {
 
 var prevParams = globalStore.params ? deserializeParams(globalStore.params) : undefined;
 
-// var dataSequences = globalStore.dataSequences
+// var dataSequences = globalStore.observations
+console.log('globalStore.observations:', globalStore.observations); // <- this needs to be pre-processed based on application
 var dataSequences = [
   [true, false, false],
   [true, true, true]

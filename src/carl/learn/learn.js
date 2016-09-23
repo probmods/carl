@@ -85,18 +85,21 @@ class Learner {
     });    
   }
 
-  async updateParameters(oldParams, observations) {
-    log('updateParameters');
+  async updateParameters(params, observations) {
+    log('updating parameters');
     return new Promise((resolve, reject) => {
-      /* webppl.run(compiled, { initialStore: { params: XXX }}, (error: ?string, value: any) => {k
-         // ...
-         });     */      
-      resolve('updateParameters-result');
-    });        
+      webppl.run(this.compiled, { initialStore: { params, observations }}, (err: ?string, value: any) => {
+        if (err) {
+          return reject(err);
+        } else {
+          return resolve(value);
+        }
+      });          
+    });            
   }
 
   async storeParameters() {
-    log('storeParameters');
+    log('storing params');
     return new Promise((resolve, reject) => {
       resolve('storeParameters-result');
     });            
