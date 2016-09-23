@@ -6,14 +6,17 @@ module.exports = function(env) {
 
   var Tensor = T['__Tensor'];
   assert.ok(Tensor); // webppl puts T in global scope
+
+  function serializeTensor(tensor) {
+    return {
+      dims: tensor.dims,
+      data: tensor.toFlatArray()
+    };
+  }
   
   function serializeParams(s, k, a, paramObj) {
     var prms = _.mapValues(paramObj, function(lst) {
-      return lst.map(function(tensor) {
-        var tcopy = _.clone(tensor);
-        tcopy.data = tensor.toFlatArray();
-        return tcopy;
-      });
+      return lst.map(serializeTensor);
     });
     return k(s, prms);
   }
