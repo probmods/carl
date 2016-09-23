@@ -9,6 +9,9 @@ import webppl from '../common/webppl';
 import { log, error, httpSuccess, httpFailure } from './util'; 
 
 
+type MapOfObservations = { [key: string]: Array<Object> };
+
+
 function checkStoreResponse(err, result) {
   if (err) {
     return err;
@@ -41,7 +44,7 @@ class Learner {
     return `${commonCode}\n${learnerCode}`;
   }  
   
-  async loadObservations(): Promise<Array<Object>> {
+  async loadObservations(): Promise<MapOfObservations> {
     log('loading observations');
     const postData = {
       collection: 'percepts'
@@ -58,7 +61,9 @@ class Learner {
         }        
         // Return observations
         log(`${body.length} observations found`);
-        return resolve(body);
+        const observations = settings.app.learn.prepareObservations(body);
+        log(`observations: ${JSON.stringify(observations)}`);
+        return resolve(observations);
       });
     });
   }
@@ -90,7 +95,7 @@ class Learner {
     });
   }
 
-  async updateParameters(params: Object, observations: Array<Object>): Promise<Object> {
+  async updateParameters(params: Object, observations: MapOfObservations): Promise<Object> {
     log('updating parameters');
     return new Promise((resolve, reject) => {
       webppl.run(this.compiled, { initialStore: { params, observations }}, (err: ?string, value: any) => {
@@ -112,7 +117,7 @@ class Learner {
 
   async run() {
     try {
-      const observations: Array<Object> = await this.loadObservations();
+      const observations: MapOfObservations = await this.loadObservations();
       const oldParams: Object = await this.loadParameters();
       const newParams: Object = await this.updateParameters(oldParams, observations);
       await this.storeParameters(newParams);
