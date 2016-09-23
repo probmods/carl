@@ -26,8 +26,8 @@ function main() {
   });
   
   // parameter optimization without previous parameters
-  var params = undefined;
-  webppl.run(compile('test-params.wppl'), { initialStore: { params: params } }, (error: ?string, value: mixed) => {
+  var params: any = undefined;
+  webppl.run(compile('test-params.wppl'), { initialStore: { params: params } }, (error: ?string, value: any) => {
     assert.strictEqual(error, null);
     assert.notStrictEqual(value, null);
     var p_ = value.p_[0].data[0];
@@ -36,11 +36,12 @@ function main() {
   });
 
   // parameter optimization with previous parameters; check that we optimize some more
-  webppl.run(compile('test-params.wppl'), { initialStore: { params: params } }, (error: ?string, value: mixed) => {
+  webppl.run(compile('test-params.wppl'), { initialStore: { params: params } }, (error: ?string, value: any) => {
     assert.strictEqual(error, null);
     assert.notStrictEqual(value, null);
-    var p_ = value.p_[0].data[0];
-    assert.ok(p_ > params.p_[0].data[0]);
+    var p_old = params.p_[0].data[0];
+    var p_new = value.p_[0].data[0];
+    assert.ok(p_new > p_old);
   });
 
   console.log('\nAll tests passed.');

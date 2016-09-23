@@ -22,7 +22,7 @@ function compile(path: string): mixed {
   return compiled;
 }
 
-function run(compiled: mixed, options: Object, callback: (error: ?string, value: mixed) => any): void {
+function run(compiled: mixed, options: Object, callback: (error: ?string, value: any) => any): void {
   try {
     const prepared = webppl.prepare(
       compiled,
