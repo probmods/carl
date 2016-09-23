@@ -13,10 +13,12 @@ class Learner {
 
   // add type for 'compiled' here
   compiled: mixed
+  storeURL: string
 
   constructor(options) {
     const code = this.loadModelCode();
-    this.compiled = webppl.compileCode(code);    
+    this.compiled = webppl.compileCode(code);
+    this.storeURL = `http://${settings.addresses.store.hostname}:${settings.addresses.store.port}`;
   }
 
   loadModelCode() {
@@ -26,21 +28,44 @@ class Learner {
   }  
   
   async loadObservations() {
-    console.log('loadObservations');
+    log('loadObservations');
     return new Promise((resolve, reject) => {
       resolve('loadObservations-result');
     });
   }
 
   async loadParameters() {
-    console.log('loadParameters');
+    log('loadParameters');
+    const storeFindOneURL = `${this.storeURL}/findOne`;
+    const postData = {
+      collection: 'parameters',
+      query: {
+        '$orderby': { '$natural': -1 },
+        '$query': {} }
+    };
     return new Promise((resolve, reject) => {
-      resolve('loadParameters-result');
+      http.sendPOSTRequest(storeFindOneURL, postData, (err, result, body) => {
+        if (!err && result && result.statusCode === 200) {
+          let newParams = undefined;
+          if (!body) {
+            log('no parameters found, starting with empty parameter set');
+          } else {
+            if (!body.params) {
+              return reject('expected params document to have single params key');
+            } else {
+              newParams = body.params;
+            }
+          }
+          return resolve(newParams);          
+        } else {
+          return reject(err);
+        }                
+      });    
     });    
   }
 
   async updateParameters(oldParams, observations) {
-    console.log('updateParameters');
+    log('updateParameters');
     return new Promise((resolve, reject) => {
       /* webppl.run(compiled, { initialStore: { params: XXX }}, (error: ?string, value: any) => {k
          // ...
@@ -50,18 +75,22 @@ class Learner {
   }
 
   async storeParameters() {
-    console.log('storeParameters');
+    log('storeParameters');
     return new Promise((resolve, reject) => {
       resolve('storeParameters-result');
     });            
   }
 
   async run() {
-    const observations = await this.loadObservations();
-    const oldParams = await this.loadParameters();
-    const newParams = await this.updateParameters(oldParams, observations);
-    await this.storeParameters(newParams);
-    log('successfully completed learner iteration');
+    try {
+      const observations = await this.loadObservations();
+      const oldParams = await this.loadParameters();
+      const newParams = await this.updateParameters(oldParams, observations);
+      await this.storeParameters(newParams);
+      log('successfully completed learner iteration');
+    } catch (err) {
+      error(err);
+    }
     setTimeout(() => this.run(), 1000);
   }
   
