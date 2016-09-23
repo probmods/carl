@@ -9,6 +9,20 @@ import webppl from '../common/webppl';
 import { log, error, httpSuccess, httpFailure } from './util'; 
 
 
+function checkStoreResponse(err, result) {
+  if (err) {
+    return err;
+  }
+  if (!result) {
+    return 'got empty result';
+  }
+  if (result.statusCode !== 200) {
+    return `got status code: ${result.statusCode}`;
+  }  
+  return null;
+}
+
+
 class Learner {
 
   // add type for 'compiled' here
@@ -28,15 +42,29 @@ class Learner {
   }  
   
   async loadObservations() {
-    log('loadObservations');
+    log('loading observations');
+    const postData = {
+      collection: 'percepts'
+    };
     return new Promise((resolve, reject) => {
-      resolve('loadObservations-result');
+      http.sendPOSTRequest(`${this.storeURL}/find`, postData, (err, result, body) => {
+        // Error checking
+        const errorMessage = checkStoreResponse(err, result);
+        if (errorMessage) {
+          return reject(`loadObservations: ${errorMessage}`);
+        }
+        if (!(body instanceof Array)) {
+          return reject(`loadObservations: expected array response, got ${body}`);
+        }        
+        // Return observations
+        log(`${body.length} observations found`);
+        return resolve(body);
+      });
     });
   }
 
   async loadParameters() {
-    log('loadParameters');
-    const storeFindOneURL = `${this.storeURL}/findOne`;
+    log('loading parameters');
     const postData = {
       collection: 'parameters',
       query: {
@@ -44,23 +72,16 @@ class Learner {
         '$query': {} }
     };
     return new Promise((resolve, reject) => {
-      http.sendPOSTRequest(storeFindOneURL, postData, (err, result, body) => {
-        if (!err && result && result.statusCode === 200) {
-          let newParams = undefined;
-          if (!body) {
-            log('no parameters found, starting with empty parameter set');
-          } else {
-            if (!body.params) {
-              return reject('expected params document to have single params key');
-            } else {
-              newParams = body.params;
-            }
-          }
-          return resolve(newParams);          
-        } else {
-          return reject(err);
-        }                
-      });    
+      http.sendPOSTRequest(`${this.storeURL}/findOne`, postData, (err, result, body) => {
+        // Error checking
+        const errorMessage = checkStoreResponse(err, result);
+        if (errorMessage) { return reject(`loadParameters: ${errorMessage}`); }
+        // Return params
+        if (!body) {
+          log('no parameters found, starting with empty parameter set');
+        }
+        return resolve(body);
+      });
     });    
   }
 
