@@ -1,16 +1,12 @@
-var initialParams = [0.5];
+var prevParams = globalStore.params ? deserializeParams(globalStore.params) : undefined;
 
-var prevParams = [Vector(globalStore.params ? _.values(globalStore.params) : initialParams)];
-
-console.log('prevParams', prevParams);
-
-var newParams = Optimize(function(){
-  var params = registerParamsByName('globalParams', prevParams);
-  var p = T.get(params[0], 0);
+var params = Optimize(function(){
+  var p_ = paramScalar(0, 0.001, 'p_');
+  var p = 1 / (1 + Math.exp(-p_));
   var dist = Bernoulli({ p: p });
   observe(dist, true);
   observe(dist, true);
-  observe(dist, true);
-}, { estimator: 'ELBO2', steps: 500, stepSize: 0.01 });
+  observe(dist, true);  
+}, { estimator: 'ELBO2', steps: 1000, stepSize: 0.05, params: prevParams });
 
-newParams
+serializeParams(params);
