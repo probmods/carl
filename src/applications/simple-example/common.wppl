@@ -38,7 +38,7 @@ var structureParams = function(rawParams) {
 var makeTimeStep = function(stdParams) {
   var theta = stdParams.theta;
   return function(state, observation) {
-    var outcome = observe(Bernoulli(theta), observation.outcome);
+    var outcome = observe(Bernoulli({ p: theta }), observation.outcome);
     return {
       outcome: outcome
     };
