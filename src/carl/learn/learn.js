@@ -35,13 +35,13 @@ class Learner {
     this.storeURL = `http://${settings.addresses.store.hostname}:${settings.addresses.store.port}`;
   }
 
-  loadModelCode() {
+  loadModelCode(): string {
     const commonCode = fs.readFileSync(path.join(settings.appDirectory, 'common.wppl'), 'utf-8');
     const learnerCode = fs.readFileSync(path.join(settings.appDirectory, 'learn.wppl'), 'utf-8');
     return `${commonCode}\n${learnerCode}`;
   }  
   
-  async loadObservations() {
+  async loadObservations(): Promise<Array<Object>> {
     log('loading observations');
     const postData = {
       collection: 'percepts'
@@ -63,7 +63,7 @@ class Learner {
     });
   }
 
-  async loadParameters() {
+  async loadParameters(): Promise<Object> {
     log('loading parameters');
     const postData = {
       collection: 'parameters',
@@ -79,13 +79,18 @@ class Learner {
         // Return params
         if (!body) {
           log('no parameters found, starting with empty parameter set');
+          return resolve({});
+        } else {
+          if (!(body instanceof Object)) {
+            return reject(`loadParameters: expected object response, got ${body}`);
+          }
+          return resolve(body);
         }
-        return resolve(body);
       });
-    });    
+    });
   }
 
-  async updateParameters(params, observations) {
+  async updateParameters(params: Object, observations: Array<Object>): Promise<Object> {
     log('updating parameters');
     return new Promise((resolve, reject) => {
       webppl.run(this.compiled, { initialStore: { params, observations }}, (err: ?string, value: any) => {
@@ -107,9 +112,9 @@ class Learner {
 
   async run() {
     try {
-      const observations = await this.loadObservations();
-      const oldParams = await this.loadParameters();
-      const newParams = await this.updateParameters(oldParams, observations);
+      const observations: Array<Object> = await this.loadObservations();
+      const oldParams: Object = await this.loadParameters();
+      const newParams: Object = await this.updateParameters(oldParams, observations);
       await this.storeParameters(newParams);
       log('successfully completed learner iteration');
     } catch (err) {
