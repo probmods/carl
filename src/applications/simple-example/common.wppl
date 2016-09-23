@@ -45,27 +45,3 @@ var sampleInitialState = function() {
   return {};
 };
 
-
-// --------------------------------------------------------------------
-// Learner-specific stuff below here; move to learn.wppl
-
-var updateParams = function(params, dataSequences) {
-  return Optimize(function(){ return model(dataSequences); }, {
-    estimator: 'ELBO2',
-    steps: 500,
-    stepSize: 0.01,
-    params: params
-  });
-};
-
-
-var prevParams = globalStore.params ? deserializeParams(globalStore.params) : undefined;
-
-// var dataSequences = globalStore.dataSequences
-var dataSequences = [
-  [true, false, false],
-  [true, true, true]
-];
-var newParams = updateParams(prevParams, dataSequences);
-
-serializeParams(newParams);
