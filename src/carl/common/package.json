@@ -15,6 +15,6 @@
     "express": "^4.14.0",
     "lodash": "^4.15.0",
     "request": "^2.74.0",
-    "webppl": "^0.9.2"
+    "webppl": "github:probmods/webppl#new-vi-estimator"
   }
 }
