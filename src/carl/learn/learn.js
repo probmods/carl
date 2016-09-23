@@ -72,9 +72,7 @@ class Learner {
     log('loading parameters');
     const postData = {
       collection: 'parameters',
-      query: {
-        '$orderby': { '$natural': -1 },
-        '$query': {} }
+      projection: { sort: { '$natural': -1 } }
     };
     return new Promise((resolve, reject) => {
       http.sendPOSTRequest(`${this.storeURL}/findOne`, postData, (err, result, body) => {
@@ -89,7 +87,11 @@ class Learner {
           if (!(body instanceof Object)) {
             return reject(`loadParameters: expected object response, got ${body}`);
           }
-          return resolve(body);
+          if (!body.params || !(body.params instanceof Object)) {
+            return reject(`loadParameters: expected return object to have 'params' property, got ${body}`);
+          }
+          log(`response: ${JSON.stringify(body)}`);
+          return resolve(body.params);
         }
       });
     });
@@ -108,10 +110,20 @@ class Learner {
     });            
   }
 
-  async storeParameters() {
+  async storeParameters(params) {
     log('storing params');
+    const postData = {
+      collection: 'parameters',
+      datetime: new Date(),
+      params
+    };
     return new Promise((resolve, reject) => {
-      resolve('storeParameters-result');
+      http.sendPOSTRequest(`${this.storeURL}/insert`, postData, (err, result, body) => {
+        const errorMessage = checkStoreResponse(err, result);
+        if (errorMessage) { return reject(`storeParameters: ${errorMessage}`); }        
+        log(`stored new params: ${JSON.stringify(params)}`);
+        resolve();
+      });
     });            
   }
 
@@ -136,7 +148,7 @@ function serve() {
   const port = settings.addresses.learn.port;
   const hostname = settings.addresses.learn.hostname;
 
-  const learner = new Learner();  // options
+  const learner = new Learner();
   
   learner.run();
 
