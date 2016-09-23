@@ -5,7 +5,7 @@ import path from 'path';
 import webppl from '../carl/common/webppl';
 
 
-function main() {
+function test() {
   const compile = (filename: string) => {
     const filepath = path.join(__dirname, filename);
     return webppl.compile(filepath);    
@@ -15,14 +15,14 @@ function main() {
   webppl.run(compile('test-success.wppl'), {}, (error: ?string, value: mixed) => {
     assert.strictEqual(error, null);
     assert.notStrictEqual(value, null);
-    console.log(`value: ${JSON.stringify(value)}`);
+    // console.log(`value: ${JSON.stringify(value)}`);
   });
 
   // basic webppl program with error
   webppl.run(compile('test-error.wppl'), {}, (error: ?string, value: mixed) => {
     assert.notStrictEqual(error, null);
     assert.strictEqual(value, null);
-    console.log(`error (expected): ${JSON.stringify(error)}`);
+    // console.log(`error (expected): ${JSON.stringify(error)}`);
   });
   
   // parameter optimization without previous parameters
@@ -43,9 +43,14 @@ function main() {
     var p_new = value.p_[0].data[0];
     assert.ok(p_new > p_old);
   });
-
-  console.log('\nAll tests passed.');
   
 }
 
-main();
+
+if ((require: any).main === module) {
+  test();
+}
+
+export default {
+  test
+};

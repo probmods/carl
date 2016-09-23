@@ -4,6 +4,8 @@ Requirements:
 
     mongodb
 
+All of the below takes places in `src/`.
+
 Install:
 
     npm install
@@ -22,3 +24,7 @@ Run the type checker in watch mode:
 Run all servers:
 
     babel-node carl/main.js
+
+Run tests:
+
+    babel-node tests/run-all.js
