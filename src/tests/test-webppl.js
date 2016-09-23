@@ -26,11 +26,11 @@ function test() {
   });
   
   // parameter optimization without previous parameters
-  var params: any = undefined;
+  let params: any = undefined;
   webppl.run(compile('test-params.wppl'), { initialStore: { params: params } }, (error: ?string, value: any) => {
     assert.strictEqual(error, null);
     assert.notStrictEqual(value, null);
-    var p_ = value.p_[0].data[0];
+    const p_ = value.p_[0].data[0];
     assert.ok(p_ > 0);
     params = value;
   });
@@ -39,8 +39,8 @@ function test() {
   webppl.run(compile('test-params.wppl'), { initialStore: { params: params } }, (error: ?string, value: any) => {
     assert.strictEqual(error, null);
     assert.notStrictEqual(value, null);
-    var p_old = params.p_[0].data[0];
-    var p_new = value.p_[0].data[0];
+    const p_old = params.p_[0].data[0];
+    const p_new = value.p_[0].data[0];
     assert.ok(p_new > p_old);
   });
   
