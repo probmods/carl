@@ -11,15 +11,13 @@ var foldData = function(init, timeStep, observations) {
     observations.reverse())
 };
 
-var model = function(stdParams) {
-  var timeStep = makeTimeStep(stdParams);
+var model = function(dataSequences) {
+  var timeStep = makeTimeStep();
   mapData(
     { data: dataSequences },
     function(sequence) {
-      var initialState = sampleInitialState(stdParams);
-      return foldData(initialState,
-                      timeStep,
-                      sequence);
+      var initialState = sampleInitialState();
+      return foldData(initialState, timeStep, sequence);
     }
   );
 };
@@ -28,25 +26,22 @@ var model = function(stdParams) {
 // --------------------------------------------------------------------
 // Application-specific stuff here
 
-var structureParams = function(rawParams) {
-  return {
-    theta: rawParams[0]
-  };
-};
+var squish = function(x) {
+  return 1 / (1 + Math.exp(-x))
+}
 
 // We ignore the previous (empty) state, coin flips are i.i.d.
-var makeTimeStep = function(stdParams) {
-  var theta = stdParams.theta;
+var makeTimeStep = function() {
+  var theta = paramScalar(0, 0.001, 'theta');
+  var p = squish(theta);
   return function(state, observation) {
-    var outcome = observe(Bernoulli({ p: theta }), observation.outcome);
-    return {
-      outcome: outcome
-    };
+    var outcome = observe(Bernoulli({ p: p }), observation);
+    return outcome;
   };
 };
 
 // We don't have per-coin persistent state
-var sampleInitialState = function(stdParams) {
+var sampleInitialState = function() {
   return {};
 };
 
@@ -54,20 +49,23 @@ var sampleInitialState = function(stdParams) {
 // --------------------------------------------------------------------
 // Learner-specific stuff below here; move to learn.wppl
 
-var updateParams = function(rawParams, dataSequences) {
-  return Optimize(
-    function() {
-      var regParams = registerParamsByName('globalParams', rawParams);
-      var stdParams = structureParams(regParams);
-      model(stdParams);
-    },
-    { estimator: 'ELBO', steps: 500, stepSize: 0.01 })
+var updateParams = function(params, dataSequences) {
+  return Optimize(function(){ return model(dataSequences); }, {
+    estimator: 'ELBO2',
+    steps: 500,
+    stepSize: 0.01,
+    params: params
+  });
 };
 
-var newParams = updateParams(globalStore.rawParams, globalStore.dataSequences);
 
-var output = {
-  newParams: newParams
-};
+var prevParams = globalStore.params ? deserializeParams(globalStore.params) : undefined;
 
-output;
+// var dataSequences = globalStore.dataSequences
+var dataSequences = [
+  [true, false, false],
+  [true, true, true]
+];
+var newParams = updateParams(prevParams, dataSequences);
+
+serializeParams(newParams);
