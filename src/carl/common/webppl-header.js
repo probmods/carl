@@ -25,7 +25,7 @@ module.exports = function(env) {
         return new Tensor(tensor.dims).fromFlatArray(tensor.data);
       });
     }
-    return k(s, paramObj);
+    return k(s, prms);
   }
 
   return { serializeParams, deserializeParams };
