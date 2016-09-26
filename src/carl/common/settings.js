@@ -21,7 +21,11 @@ const settings = {
     learn: {
       hostname: 'localhost',
       port: 3002
-    }
+    },
+    infer: {
+      hostname: 'localhost',
+      port: 3003
+    }    
   },
   appDirectory,
   app
