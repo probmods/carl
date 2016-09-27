@@ -18,7 +18,7 @@ module.exports = {
       });
       const parsedData = _.mapValues(sortedData, (coinObservations) => {
         return coinObservations.map((observation) => {
-          return observation.outcome ? true : false;
+          return (observation.outcome == "1") ? true : false;
         });
       });
       return parsedData;
