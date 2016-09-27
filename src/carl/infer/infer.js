@@ -5,24 +5,35 @@ import settings from '../common/settings';
 import { log, error, httpSuccess, httpFailure } from './util';
 
 
-function registerObservationHandler(hostname, port) {
+class Inferer {
 
-  const storeURL = (`http://${settings.addresses.store.hostname}:` +
-                    `${settings.addresses.store.port}/registerHandler`);
-  
-  const data = {
-    callbackURL: `http://${hostname}:${port}/handleObservation`,
-    collection: 'observations'
-  };
+  constructor(options) {
+    this.storeURL = `http://${settings.addresses.store.hostname}:${settings.addresses.store.port}`;
+    this.registerObservationHandler();
+  }
 
-  http.sendPOSTRequest(storeURL, data, (err, result, body) => {
-    if (!err && result && result.statusCode === 200) {
-      log('successfully registered observation handler');
-    } else {
-      error(`failed to register observation handler, will try again`);
-      setTimeout(registerObservationHandler, 2000);
-    }
-  });
+  registerObservationHandler() {
+    const data = {
+      callbackURL: (`http://${settings.addresses.infer.hostname}:` +
+                    `${settings.addresses.infer.port}/handleObservation`),
+      collection: 'observations'
+    };
+    http.sendPOSTRequest(`${this.storeURL}/registerHandler`, data, (err, result, body) => {
+      if (!err && result && result.statusCode === 200) {
+        log('successfully registered observation handler');
+      } else {
+        error(`failed to register observation handler, will try again`);
+        setTimeout(this.registerObservationHandler, 2000);
+      }
+    });
+  }
+
+  async handleObservation(request: RequestWithBody, reponse: Response): ?Response {
+    log(`received observation: ${JSON.stringify(request.body)}`);
+  }
+
+  run() {
+  }
 
 }
 
@@ -32,14 +43,11 @@ function serve() {
   const hostname = settings.addresses.infer.hostname;
   const port = settings.addresses.infer.port;
 
-  function handleObservation(request: RequestWithBody, reponse: Response): ?Response {
-    log(`received observation: ${JSON.stringify(request.body)}`);
-  }
+  const inferer = new Inferer();
+  inferer.run();
 
-  registerObservationHandler(hostname, port);
-  
   http.runServer(
-    { post: { handleObservation }, port },
+    { post: { handleObservation: inferer.handleObservation }, port },
     () => { log(`running at http://${hostname}:${port}`); });
 
 }
