@@ -52,7 +52,7 @@ function runServer(options: ServerOptions, callback: () => void) {
   app.listen(options.port, callback); 
 }
 
-function sendPOSTRequest<T>(url: string, data: Object, callback: (error: mixed, result: ?Object, body: mixed) => T) {
+function sendPOSTRequest<T>(url: string, data: Object, callback: (error: string, result: ?Object, body: mixed) => T) {
   return _sendPOSTRequest(url, { json: data }, callback);
 }
 

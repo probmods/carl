@@ -29,7 +29,7 @@ function serve() {
         if (!err && result && result.statusCode === 200) {
           httpSuccess(response, `successfully sent percept to store`);
         } else {
-          httpFailure(response, `error sending percept to store: ${err} ${body}`);
+          httpFailure(response, `error sending percept to store: ${err} ${JSON.stringify(body)}`);
         }                
       });
     });

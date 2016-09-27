@@ -9,7 +9,7 @@ import { log, error } from './util';
 function connectWithRetry(client: MongoClient, delayInMilliseconds: number, callback: (db: MongoDB) => void) {
   client.connect(settings.mongoURL, (err: mixed, db: MongoDB) => {
     if (err) {
-      error(`error connecting to mongodb: ${err}`);
+      error(`error connecting to mongodb: ${JSON.stringify(err)}`);
       setTimeout(() => connectWithRetry(client, delayInMilliseconds, callback), delayInMilliseconds);
     } else {
       log('connected succesfully to mongodb');
