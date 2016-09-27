@@ -14,7 +14,7 @@ const settings = {
       hostname: 'localhost',
       port: 4000
     },
-    perceive: {
+    observe: {
       hostname: 'localhost',
       port: 3001
     },

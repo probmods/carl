@@ -5,12 +5,12 @@ import http from '../common/http';
 
 
 const log = util.makeLogger({
-  prefix: 'perceive',
+  prefix: 'observe',
   prefixColor: 'green'
 });
 
 const error = util.makeLogger({
-  prefix: 'perceive',
+  prefix: 'observe',
   prefixColor: 'green',
   textColor: 'red'
 });

@@ -1,13 +1,13 @@
 'use strict'; // @flow
 
 import learn from './learn/learn';
-import perceive from './perceive/perceive';
+import observe from './observe/observe';
 import store from './store/store';
 
 
 function main() {
   store.serve();
-  perceive.serve();
+  observe.serve();
   learn.serve();
 }
 

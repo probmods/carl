@@ -7,8 +7,8 @@ import { log, error, httpSuccess, httpFailure } from './util';
 
 function serve() {
 
-  const port = settings.addresses.perceive.port;
-  const hostname = settings.addresses.perceive.hostname;
+  const port = settings.addresses.observe.port;
+  const hostname = settings.addresses.observe.hostname;
   
   http.runServer(
     { port },

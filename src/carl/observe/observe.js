@@ -15,31 +15,31 @@ function serve() {
     };
   }  
 
-  function addPercept(request: RequestWithBody, response: Response): ?Response {
-    log(`received percept: ${JSON.stringify(request.body)}`);
-    const requiredFields = settings.app.perceive.requiredFields;
+  function addObservation(request: RequestWithBody, response: Response): ?Response {
+    log(`received observation: ${JSON.stringify(request.body)}`);
+    const requiredFields = settings.app.observe.requiredFields;
     return http.checkRequestFields(request, requiredFields, makeFieldFailure(response), () => {
       const postData = _.assign(_.pick(request.body, requiredFields), {
-        collection: 'percepts',
+        collection: 'observations',
         datetime: new Date()
       });
-      log(`looks good, sending percept to store`);
+      log(`looks good, sending observation to store`);
       const storeURL = `http://${settings.addresses.store.hostname}:${settings.addresses.store.port}/insert`;
       http.sendPOSTRequest(storeURL, postData, (err, result, body) => {
         if (!err && result && result.statusCode === 200) {
-          httpSuccess(response, `successfully sent percept to store`);
+          httpSuccess(response, `successfully sent observation to store`);
         } else {
-          httpFailure(response, `error sending percept to store: ${err} ${JSON.stringify(body)}`);
+          httpFailure(response, `error sending observation to store: ${err} ${JSON.stringify(body)}`);
         }                
       });
     });
   }
 
-  const port = settings.addresses.perceive.port;
-  const hostname = settings.addresses.perceive.hostname;
+  const port = settings.addresses.observe.port;
+  const hostname = settings.addresses.observe.hostname;
   
   http.runServer(
-    { post: { addPercept }, port },
+    { post: { addObservation }, port },
     () => { log(`running at http://${hostname}:${port}`); });  
 }
 

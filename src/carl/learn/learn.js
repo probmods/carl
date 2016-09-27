@@ -47,7 +47,7 @@ class Learner {
   async loadObservations(): Promise<MapOfObservations> {
     log('loading observations');
     const postData = {
-      collection: 'percepts'
+      collection: 'observations'
     };
     return new Promise((resolve, reject) => {
       http.sendPOSTRequest(`${this.storeURL}/find`, postData, (err, result, body) => {

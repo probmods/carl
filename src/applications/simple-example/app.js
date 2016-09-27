@@ -6,7 +6,7 @@
 var _ = require('lodash');
 
 module.exports = {
-  perceive: {
+  observe: {
     requiredFields: ['coinNumber', 'outcome']
   },
   learn: {
