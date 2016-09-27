@@ -1,3 +1,5 @@
+'use strict'; // @flow
+
 import util from '../common/util';
 import http from '../common/http';
 
