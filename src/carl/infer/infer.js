@@ -6,6 +6,7 @@ import path from 'path';
 import http from '../common/http';
 import settings from '../common/settings';
 import webppl from '../common/webppl';
+import { loadParameters } from '../common/load';
 import { log, error, httpSuccess, httpFailure } from './util';
 
 
@@ -47,7 +48,9 @@ class Inferer {
     log(`received observation: ${JSON.stringify(request.body)}`);
   }
 
-  run() {
+  async run() {
+    const parameters = await loadParameters(log, error);
+    console.log(`Parameters: ${JSON.stringify(parameters)}`);
   }
 
 }
