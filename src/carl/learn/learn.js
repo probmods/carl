@@ -6,24 +6,10 @@ import path from 'path';
 import http from '../common/http';
 import settings from '../common/settings';
 import webppl from '../common/webppl';
+import { loadObservations, loadParameters, checkStoreResponse } from '../common/load';
 import { log, error, httpSuccess, httpFailure } from './util'; 
 
-
-type MapOfObservations = { [key: string]: Array<Object> };
-
-
-function checkStoreResponse(err, result) {
-  if (err) {
-    return err;
-  }
-  if (!result) {
-    return 'got empty result';
-  }
-  if (result.statusCode !== 200) {
-    return `got status code: ${result.statusCode}`;
-  }  
-  return null;
-}
+import type MapOfObservations from '../common/typedefs/carl';
 
 
 class Learner {
@@ -32,7 +18,7 @@ class Learner {
   compiled: mixed
   storeURL: string
 
-  constructor(options) {
+  constructor() {
     const code = this.loadModelCode();
     this.compiled = webppl.compileCode(code);
     this.storeURL = `http://${settings.addresses.store.hostname}:${settings.addresses.store.port}`;
@@ -44,59 +30,6 @@ class Learner {
     return `${commonCode}\n${learnerCode}`;
   }  
   
-  async loadObservations(): Promise<MapOfObservations> {
-    log('loading observations');
-    const postData = {
-      collection: 'observations'
-    };
-    return new Promise((resolve, reject) => {
-      http.sendPOSTRequest(`${this.storeURL}/find`, postData, (err, result, body) => {
-        // Error checking
-        const errorMessage = checkStoreResponse(err, result);
-        if (errorMessage) {
-          return reject(`loadObservations: ${errorMessage}`);
-        }
-        if (!(body instanceof Array)) {
-          return reject(`loadObservations: expected array response, got ${body}`);
-        }        
-        // Return observations
-        log(`${body.length} observations found`);
-        const observations = settings.app.learn.prepareObservations(body);
-        log(`observations: ${JSON.stringify(observations)}`);
-        return resolve(observations);
-      });
-    });
-  }
-
-  async loadParameters(): Promise<Object> {
-    log('loading parameters');
-    const postData = {
-      collection: 'parameters',
-      projection: { sort: { '$natural': -1 } }
-    };
-    return new Promise((resolve, reject) => {
-      http.sendPOSTRequest(`${this.storeURL}/findOne`, postData, (err, result, body) => {
-        // Error checking
-        const errorMessage = checkStoreResponse(err, result);
-        if (errorMessage) { return reject(`loadParameters: ${errorMessage}`); }
-        // Return params
-        if (!body) {
-          log('no parameters found, starting with empty parameter set');
-          return resolve({});
-        } else {
-          if (!(body instanceof Object)) {
-            return reject(`loadParameters: expected object response, got ${body}`);
-          }
-          if (!body.params || !(body.params instanceof Object)) {
-            return reject(`loadParameters: expected return object to have 'params' property, got ${body}`);
-          }
-          log(`response: ${JSON.stringify(body)}`);
-          return resolve(body.params);
-        }
-      });
-    });
-  }
-
   async updateParameters(params: Object, observations: MapOfObservations): Promise<Object> {
     log('updating parameters');
     return new Promise((resolve, reject) => {
@@ -129,8 +62,8 @@ class Learner {
 
   async run() {
     try {
-      const observations: MapOfObservations = await this.loadObservations();
-      const oldParams: Object = await this.loadParameters();
+      const observations: MapOfObservations = await loadObservations(log, error);
+      const oldParams: Object = await loadParameters(log, error);
       const newParams: Object = await this.updateParameters(oldParams, observations);
       await this.storeParameters(newParams);
       log('successfully completed learner iteration');
