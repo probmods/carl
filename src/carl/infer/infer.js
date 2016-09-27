@@ -1,16 +1,31 @@
 'use strict'; // @flow
 
+import fs from 'fs'
+import path from 'path';
+
 import http from '../common/http';
 import settings from '../common/settings';
+import webppl from '../common/webppl';
 import { log, error, httpSuccess, httpFailure } from './util';
 
 
 class Inferer {
 
+  compiled: mixed
+  storeURL: string
+
   constructor(options) {
+    const code = this.loadModelCode();
+    this.compiled = webppl.compileCode(code);    
     this.storeURL = `http://${settings.addresses.store.hostname}:${settings.addresses.store.port}`;
-    this.registerObservationHandler();
+    this.registerObservationHandler();    
   }
+  
+  loadModelCode(): string {
+    const commonCode = fs.readFileSync(path.join(settings.appDirectory, 'common.wppl'), 'utf-8');
+    const infererCode = fs.readFileSync(path.join(settings.appDirectory, 'infer.wppl'), 'utf-8');
+    return `${commonCode}\n${infererCode}`;
+  }  
 
   registerObservationHandler() {
     const data = {
@@ -28,7 +43,7 @@ class Inferer {
     });
   }
 
-  async handleObservation(request: RequestWithBody, reponse: Response): ?Response {
+  handleObservation(request: RequestWithBody, reponse: Response): ?Response {
     log(`received observation: ${JSON.stringify(request.body)}`);
   }
 
