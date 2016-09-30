@@ -1,1 +1,36 @@
-console.log('what should happen here?');
+assert.ok(globalStore.params);
+assert.ok(globalStore.observations);
+
+// globalStore.observations = {
+//   1: [true, false, false],
+//   2: [false, false, true]
+// }
+
+
+var main = function() {
+
+  var pairs = _.pairs(globalStore.observations);
+  var values = map(function(pair){ return pair[1]; }, pairs);
+  var keys = map(function(pair){ return pair[0]; }, pairs);
+  
+  var params = globalStore.params; // don't optimize the global parameters
+  var timeStep = makeTimeStep(params);
+  
+  var stateDists = map(
+    function(observations){
+      console.log('observations', observations);
+      return Infer({ method: 'optimize', samples: 100 }, function(){
+        var initialState = sampleInitialState(params);
+        return foldData(initialState, timeStep, observations);
+      });
+    },
+    values);
+
+  return _.object(_.zip(keys, stateDists));
+}
+
+var out = main();
+
+console.log('infer.wppl finishing');
+
+out

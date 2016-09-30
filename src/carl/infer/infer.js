@@ -48,11 +48,27 @@ class Inferer {
     log(`received observation: ${JSON.stringify(request.body)}`);
   }
 
+  updateStateDists(params: Object, observations: MapOfObservations): Promise<Object> {
+    log('updating state dists');
+    return new Promise((resolve, reject) => {
+      webppl.run(this.compiled, { initialStore: { params, observations }}, (err: ?string, value: any) => {
+        if (err) {
+          return reject(err);
+        } else {
+          return resolve(value);
+        }
+      });          
+    });            
+  }
+  
+
   async run() {
     const parameters = await loadParameters(log, error);
     const observations: MapOfObservations = await loadObservations(log, error);
+    const stateDists: Object = await this.updateStateDists(parameters, observations);
     console.log(`Parameters: ${JSON.stringify(parameters)}`);
     console.log(`Observations: ${JSON.stringify(observations)}`);
+    console.log(`State dists: ${JSON.stringify(stateDists)}`);    
   }
 
 }

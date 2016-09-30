@@ -17,9 +17,9 @@ var model = function(dataSequences) {
   var timeStep = makeTimeStep(params);
   return mapData(
     { data: dataSequences },
-    function(sequence) {
+    function(observations) {
       var initialState = sampleInitialState(params);
-      return foldData(initialState, timeStep, sequence);
+      return foldData(initialState, timeStep, observations);
     }
   );
 };
