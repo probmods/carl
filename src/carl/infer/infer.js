@@ -6,14 +6,14 @@ import path from 'path';
 import http from '../common/http';
 import settings from '../common/settings';
 import webppl from '../common/webppl';
-import { loadParameters } from '../common/load';
+import { loadObservations, loadParameters } from '../common/load';
 import { log, error, httpSuccess, httpFailure } from './util';
 
 
 class Inferer {
 
-  compiled: mixed
-  storeURL: string
+  compiled: mixed;
+  storeURL: string;
 
   constructor(options) {
     const code = this.loadModelCode();
@@ -50,7 +50,9 @@ class Inferer {
 
   async run() {
     const parameters = await loadParameters(log, error);
+    const observations: MapOfObservations = await loadObservations(log, error);
     console.log(`Parameters: ${JSON.stringify(parameters)}`);
+    console.log(`Observations: ${JSON.stringify(observations)}`);
   }
 
 }
