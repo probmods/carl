@@ -1,5 +1,6 @@
 'use strict'; // @flow
 
+import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
 
@@ -62,7 +63,8 @@ class Learner {
     try {
       const observations: MapOfObservations = await loadObservations(log, error);
       const oldParams: Object = await loadParameters(log, error);
-      const newParams: Object = await this.updateParameters(oldParams, observations);
+      let newParams: Object = await this.updateParameters(oldParams, observations);
+      newParams = _.pick(newParams, settings.app.learn.parameterNames);  // Only store named params, not auto mean field params
       await this.storeParameters(newParams);
       log('successfully completed learner iteration');
     } catch (err) {

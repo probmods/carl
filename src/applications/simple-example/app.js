@@ -22,7 +22,8 @@ module.exports = {
         });
       });
       return parsedData;
-    }
+    },
+    parameterNames: ['theta']
   }
 };
 
