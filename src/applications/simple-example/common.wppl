@@ -2,21 +2,23 @@
 // Generic stuff here; (move to common/generic.wppl?)
 
 // TODO: eliminate reverse() by writing reduceRight
-var foldData = function(init, timeStep, observations) {
+var foldData = function(initialState, timeStep, observations) {
   return reduce(
-    function(x, acc){
-      return acc.concat(timeStep(acc[acc.length-1], x));
+    function(obs, states){
+      var nextState = timeStep(states[states.length-1], obs);
+      return states.concat(nextState);
     },
-    [init],
+    [initialState],
     observations.reverse())
 };
 
 var model = function(dataSequences) {
-  var timeStep = makeTimeStep();
-  mapData(
+  var params = makeParams();  
+  var timeStep = makeTimeStep(params);
+  return mapData(
     { data: dataSequences },
     function(sequence) {
-      var initialState = sampleInitialState();
+      var initialState = sampleInitialState(params);
       return foldData(initialState, timeStep, sequence);
     }
   );
@@ -30,18 +32,27 @@ var squish = function(x) {
   return 1 / (1 + Math.exp(-x))
 }
 
-// We ignore the previous (empty) state, coin flips are i.i.d.
-var makeTimeStep = function() {
-  var theta = paramScalar(0, 0.001, 'theta');
-  var p = squish(theta);
+// shared global parameters
+var makeParams = function() {
+  return {
+    theta: paramScalar(0, 0.001, 'theta')
+  };
+}
+
+// Each coin flip is independent conditioned on the coin weight
+// This does not directly depend on the params, only indirectly via initial state
+var makeTimeStep = function(params) {
   return function(state, observation) {
-    var outcome = observe(Bernoulli({ p: p }), observation);
-    return outcome;
+    var outcome = observe(Bernoulli({ p: state.p }), observation);
+    var nextState = state;  // more complicated models would use state transition here
+    return nextState;
   };
 };
 
-// We don't have per-coin persistent state
-var sampleInitialState = function() {
-  return {};
+// Per-coin persistent state
+var sampleInitialState = function(params) {
+  return {
+    p: squish(gaussian(params.theta, 1))
+  };
 };
 
