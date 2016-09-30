@@ -9,8 +9,6 @@ import webppl from '../common/webppl';
 import { loadObservations, loadParameters, checkStoreResponse } from '../common/load';
 import { log, error, httpSuccess, httpFailure } from './util'; 
 
-import type MapOfObservations from '../common/typedefs/carl';
-
 
 class Learner {
 

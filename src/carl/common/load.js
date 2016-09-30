@@ -1,13 +1,13 @@
+'use strict'; // @flow
+
 import http from './http';
 import settings from './settings';
-
-import type MapOfObservations from './typedefs/carl';
 
 
 const storeURL = `http://${settings.addresses.store.hostname}:${settings.addresses.store.port}`;
 
 
-function checkStoreResponse(err, result) {
+function checkStoreResponse(err: string, result: ?Object) {
   if (err) {
     return err;
   }
@@ -20,7 +20,7 @@ function checkStoreResponse(err, result) {
   return null;
 }
 
-function loadObservations(log, error): Promise<MapOfObservations> {
+function loadObservations(log: Logger, error: Logger): Promise<MapOfObservations> {
   log('loading observations');
   const postData = {
     collection: 'observations'
@@ -44,7 +44,7 @@ function loadObservations(log, error): Promise<MapOfObservations> {
   });
 }
 
-function loadParameters(log, error): Promise<Object> {
+function loadParameters(log: Logger, error: Logger): Promise<Object> {
   log('loading parameters');
   const postData = {
     collection: 'parameters',
