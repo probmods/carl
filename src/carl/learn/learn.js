@@ -14,8 +14,8 @@ import { log, error, httpSuccess, httpFailure } from './util';
 class Learner {
 
   // add type for 'compiled' here
-  compiled: mixed
-  storeURL: string
+  compiled: mixed;
+  storeURL: string;
 
   constructor() {
     const code = this.loadModelCode();
