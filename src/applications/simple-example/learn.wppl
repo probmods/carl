@@ -1,20 +1,34 @@
 var updateParams = function(params, dataSequences) {
   return Optimize(function(){ return model(dataSequences); }, {
-    estimator: 'ELBO2',
-    steps: 1000,
-    stepSize: 0.01,
-    params: params
+    "params": params,
+    "steps": 10000,
+    "optMethod": {
+      "adam": {
+        "stepSize": 0.01,
+        "decayRate1": 0.9,
+        "decayRate2": 0.999
+      }
+    },
+    "estimator": {
+      "ELBO2": {
+        "samples": 1,
+        "avgBaselines": true
+      }
+    }
   });
 };
 
+// console.log('globalStore.params', JSON.stringify(globalStore.params));
 
 var prevParams = globalStore.params ? deserializeParams(globalStore.params) : undefined;
+
+// console.log('prevParams from webppl', JSON.stringify(prevParams));
 
 // var dataSequences = [
 //   [true, false, false],
 //   [true, true, true]
 // ];
-var dataSequences = _.values(globalStore.observations);
+var dataSequences = _.values(globalStore.data);
 
 var newParams = updateParams(prevParams, dataSequences);
 
