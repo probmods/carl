@@ -3,7 +3,8 @@
 import path from 'path';
 
 
-const appName = 'simple-example';
+const appName = 'lda';
+
 const appDirectory = path.join(__dirname, '../..', 'applications/', appName);
 const app = require(path.join(appDirectory, 'app.js'));
 
