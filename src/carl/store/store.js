@@ -5,7 +5,7 @@ import path from 'path';
 import fs from 'fs'
 
 import http from '../common/http';
-import mongo from './mongo';
+import mongo from '../common/mongo';
 import settings from '../common/settings';
 import { log, error, httpSuccess, httpFailure } from './util';
 
@@ -64,7 +64,7 @@ function serveWithDB(db: MongoDB) {
       const { collection, query, projection } = parseQuery(request);
       log(`got request to find one doc in ${collection.s.name} with query ` +
           `${JSON.stringify(query)} and projection ${JSON.stringify(projection)}`);
-      collection.findOne(query, projection, (err: mixed, data: Object) => {
+      collection.findOne(query, projection, (err: mixed, data: ?Object) => {
         if (err) {
           httpFailure(response, 'error executing findOne');
         } else {
@@ -131,7 +131,7 @@ function serveWithDB(db: MongoDB) {
 
 function serve(): void {
   const client = mongo.db.MongoClient;
-  mongo.connectWithRetry(client, 2000, serveWithDB);
+  mongo.connectWithRetry(client, 2000, log, error, serveWithDB);
 }
 
 
