@@ -28,7 +28,9 @@ const settings = {
       port: 3003
     }    
   },
+  tempDirectory: '/tmp/',
   appDirectory,
+  appName,
   app
 };
 
