@@ -41,8 +41,8 @@ function makeTextResponder(statusCode: number, logger: Logger) {
 
 function runServer(options: ServerOptions, callback: () => void) {
   const app = express();
-  app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(bodyParser.json({ limit: '500mb' }));
+  app.use(bodyParser.urlencoded({ limit: '500mb', extended: true }));
   _.mapValues(options.get, (value, key) => {
     app.get(`/${key}`, value);
   });  
