@@ -12,12 +12,12 @@ function requireExtraHeader(): void {
   webppl.requireHeader(headerPath);
 }
 
-function compileFile(path: string): mixed {
+function compileFile(path: string): Compiled {
   const code = fs.readFileSync(path, 'utf8');
   return compileCode(code);
 }
 
-function compileCode(code: string): mixed {
+function compileCode(code: string): Compiled {
   const compiled = webppl.compile(code, {
     verbose: true,
     debug: true
