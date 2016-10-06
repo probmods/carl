@@ -1,0 +1,20 @@
+// _.defaults({
+//     onFinish: function(data) {
+//       fs.write(path + 'history.json', JSON.stringify(data.history));
+//     },
+//     logProgress: true,
+//     logProgressFilename: path + 'progress.csv'
+// }, settings.optimize)
+
+var updateParams = function(params, data) {
+  return Optimize(
+    function() { return model(data); },
+    _.assign({}, settings.optimize, { params: params }));
+};
+
+var prevParams = globalStore.params ? deserializeParams(globalStore.params) : undefined;
+var data = globalStore.data;
+
+var newParams = updateParams(prevParams, data);
+
+serializeParams(newParams);
