@@ -66,7 +66,6 @@ function loadParameters(log: Logger, error: Logger): Promise<Object> {
         if (!body.params || !(body.params instanceof Object)) {
           return reject(`loadParameters: expected return object to have 'params' property, got ${body}`);
         }
-        log(`response: ${JSON.stringify(body)}`);
         return resolve(body.params);
       }
     });
