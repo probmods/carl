@@ -8,6 +8,7 @@ import mongo from '../common/mongo';
 import http from '../common/http';
 import settings from '../common/settings';
 import webppl from '../common/webppl';
+import util from '../common/util';
 import { loadObservations as loadDataFromDB } from '../common/load';
 import { log, error, httpSuccess, httpFailure } from './util'; 
 
@@ -17,12 +18,17 @@ class Learner {
   compiled: Compiled;
   storeURL: URL;
   db: MongoDB;
+  histories: { [key: Date]: Array<mixed> };
+  name: string;
 
   constructor(db: MongoDB) {
     this.db = db;
     const code = this.loadModelCode();
     this.compiled = webppl.compileCode(code);
     this.storeURL = `http://${settings.addresses.store.hostname}:${settings.addresses.store.port}`;
+    this.histories = {};
+    this.name = util.randomName();
+    log(`my name is ${this.name}`);
   }
 
   loadModelCode(): string {
@@ -30,12 +36,24 @@ class Learner {
     const commonCode = read('common.wppl');
     const learnerCode = read('learn.wppl');
     return `${commonCode}\n${learnerCode}`;
-  }  
+  }
+
+  saveHistory(history) {
+    this.histories[Date.now()] = history;
+    const fn = `carl-${settings.appName}-${this.name}-histories.json`;
+    const fp = path.join(settings.tempDirectory, fn);
+    fs.writeFileSync(fp, JSON.stringify(this.histories));
+  }
   
   updateParameters(params: ?Params, data: Object): Promise<Object> {
     log('updating parameters');
+    const initialStore = {
+      params,
+      data,
+      saveHistory: this.saveHistory.bind(this)
+    };
     return new Promise((resolve, reject) => {
-      webppl.run(this.compiled, { initialStore: { params, data }}, (err: ?string, value: any) => {
+      webppl.run(this.compiled, { initialStore }, (err: ?string, value: any) => {
         if (err) {
           return reject(err);
         } else {

@@ -9,7 +9,14 @@
 var updateParams = function(params, data) {
   return Optimize(
     function() { return model(data); },
-    _.assign({}, settings.optimize, { params: params }));
+    _.assign({}, settings.optimize, {
+      onFinish: function(data) {
+        // store history of objective in learner,
+        // so that learner can store it in db
+        globalStore.saveHistory(data.history);
+      },
+      params: params
+    }));
 };
 
 var prevParams = globalStore.params ? deserializeParams(globalStore.params) : undefined;
