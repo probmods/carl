@@ -15,6 +15,7 @@
     "express": "^4.14.0",
     "lodash": "^4.15.0",
     "mongodb": "^2.2.10",
+    "project-name-generator": "^2.1.3",
     "request": "^2.74.0",
     "webppl": "github:probmods/webppl#new-vi-estimator"
   }

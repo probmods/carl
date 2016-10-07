@@ -1,6 +1,7 @@
 'use strict'; // @flow
 
 import colors from 'colors/safe';
+import { generate } from 'project-name-generator';
 
 
 export type Logger = (text: string) => void;
@@ -15,7 +16,12 @@ function makeLogger(options: Object): Logger {
   };
 }
 
+function randomName() {
+  return generate().dashed;
+}
+
 
 export default {
-  makeLogger
+  makeLogger,
+  randomName
 };
