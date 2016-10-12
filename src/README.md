@@ -8,12 +8,7 @@ All of the below takes places in `src/`.
 
 Install:
 
-    npm install
-    cd carl
-    cd common; npm install; cd ..
-    cd store; npm install; cd ..
-    cd learn; npm install; cd ..
-    cd ..
+    scripts/install.sh
 
 Adjust `carl/common/settings.js`.
 
