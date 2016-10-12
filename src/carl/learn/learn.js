@@ -16,7 +16,6 @@ import { log, error, httpSuccess, httpFailure } from './util';
 class Learner {
 
   compiled: Compiled;
-  storeURL: URL;
   db: MongoDB;
   histories: { [key: Date]: Array<mixed> };
   name: string;
@@ -25,7 +24,6 @@ class Learner {
     this.db = db;
     const code = this.loadModelCode();
     this.compiled = webppl.compileCode(code);
-    this.storeURL = `http://${settings.addresses.store.hostname}:${settings.addresses.store.port}`;
     this.histories = {};
     this.name = util.randomName();
     log(`my name is ${this.name}`);
