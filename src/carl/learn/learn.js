@@ -17,7 +17,7 @@ class Learner {
 
   compiled: Compiled;
   db: MongoDB;
-  histories: { [key: Date]: Array<mixed> };
+  histories: { [key: number]: Array<mixed> };
   name: string;
 
   constructor(db: MongoDB) {
