@@ -6,19 +6,24 @@ set -ex
 cd "$( dirname "${BASH_SOURCE[0]}" )/../src"
 
 # Install package manager
-npm install -g yarn
+if hash yarn 2>/dev/null; then
+    install="yarn"
+else
+    install="npm install"
+fi
+
 
 # Install root packages
-yarn
+eval $install
 
 cd carl
 
 # Install common packages
 cd common
-yarn
+eval $install
 cd ..
 
 # Install store packages
 cd store
-yarn
+eval $install
 cd ..
