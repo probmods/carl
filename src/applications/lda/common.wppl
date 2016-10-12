@@ -11,7 +11,7 @@ var settings = {
       }
     },
     "estimator": {
-      "ELBO2": {
+      "ELBO": {
         "samples": 1,
         "avgBaselines": true
       }

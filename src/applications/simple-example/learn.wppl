@@ -10,7 +10,7 @@ var updateParams = function(params, dataSequences) {
       }
     },
     "estimator": {
-      "ELBO2": {
+      "ELBO": {
         "samples": 1,
         "avgBaselines": true
       }

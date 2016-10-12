@@ -7,6 +7,6 @@ var params = Optimize(function(){
   observe(dist, true);
   observe(dist, true);
   observe(dist, true);  
-}, { estimator: 'ELBO2', steps: 1000, stepSize: 0.05, params: prevParams });
+}, { estimator: 'ELBO', steps: 1000, stepSize: 0.05, params: prevParams });
 
 serializeParams(params);
