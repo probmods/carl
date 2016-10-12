@@ -12,7 +12,6 @@ else
     install="npm install"
 fi
 
-
 # Install root packages
 eval $install
 

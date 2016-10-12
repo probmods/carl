@@ -3,6 +3,7 @@
 Requirements:
 
     mongodb
+    babel-node (npm install -g babel-cli)
 
 All of the below takes places in `src/`.
 
