@@ -64,7 +64,7 @@ class Learner {
   loadParameters(): Promise<?Params> {
     const collection = this.db.collection('parameters');
     return new Promise((resolve, reject) => {
-      collection.findOne({}, {}, (err: mixed, data: ?Object) => {
+      collection.findOne({ _id: 0 }, {}, (err: mixed, data: ?Object) => {
         if (err) {
           reject(err);
         } else {
@@ -74,25 +74,31 @@ class Learner {
     });
   }
 
-  computeDeltas(oldParams: Params, newParams: Params): Object {
-    const deltas = {};
-    _.forEach(newParams, (paramArray, paramName) => {
-      _.forEach(paramArray, (paramTensor, tensorIndex) => {
-        _.forEach(paramTensor.data, (newParamValue, valueIndex) => {
-          const oldTensor = oldParams[paramName][tensorIndex];
-          if (oldTensor == null) {
-            throw new Error(`old param not found!`);
-          }
-          const oldParamValue = oldTensor.data[valueIndex];
-          deltas[`currentParams.${paramName}.${tensorIndex}.data.${valueIndex}`] = newParamValue - oldParamValue;
+  async storeParameters(oldParams: ?Params, newParams: Params) {    
+    
+    // 1. Load most recent parameters from DB
+    const collection = this.db.collection('parameters');
+    const curParams: ?Object = await this.loadParameters();
+    
+    // 2. Apply deltas
+    let paramsToStore = newParams;    
+    if (oldParams && curParams) {
+      log('storing param deltas');
+      _.forEach(curParams, (paramArray, paramName) => {
+        _.forEach(paramArray, (paramTensor, i) => {
+          _.forEach(paramTensor.data, (newParamValue, j) => {
+            const curValue = curParams[paramName][i].data[j];
+            const oldValue = oldParams[paramName][i].data[j];
+            const newValue = newParams[paramName][i].data[j];
+            paramsToStore[paramName][i].data[j] = curValue + (newValue - oldValue);
+          });
         });
       });
-    });
-    return deltas;
-  }
-
-  storeParameters(oldParams: ?Params, newParams: Params) {    
-    const collection = this.db.collection('parameters');
+    } else {
+      log('storing params (not deltas)');
+    }
+    
+    // 3. Store updated parameters in DB
     return new Promise((resolve, reject) => {
       const next = (err: mixed, result) => {
         if (err) {
@@ -101,14 +107,7 @@ class Learner {
           resolve();
         }
       }
-      if (oldParams != null) {
-        log('storing param deltas');
-        const deltas = this.computeDeltas(oldParams, newParams);
-        collection.update({}, { $inc: deltas }, {}, next);
-      } else {
-        log('storing params (not deltas)');
-        collection.insert({ currentParams: newParams }, next);
-      }
+      collection.update({ _id: 0 }, { currentParams: paramsToStore }, { upsert: true }, next);
     });
   }
 
