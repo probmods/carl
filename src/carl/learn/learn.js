@@ -48,6 +48,7 @@ class Learner {
     const initialStore = {
       params,
       data,
+      settings: settings.app.learn.webppl,
       saveHistory: this.saveHistory.bind(this)
     };
     return new Promise((resolve, reject) => {

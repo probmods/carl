@@ -1,44 +1,3 @@
-// var settings = {
-//   "modelName": "lda100",
-//   "numTopics": 5,
-//   "optimize": {
-//     "steps": 1, // 10000
-//     "optMethod": {
-//       "adam": {
-//         "stepSize": 0.01,
-//         "decayRate1": 0.9,
-//         "decayRate2": 0.999
-//       }
-//     },
-//     "estimator": {
-//       "ELBO": {
-//         "samples": 1,
-//         "avgBaselines": true
-//       }
-//     }
-//   }
-// };
-
-var settings = {
-  "modelName": "lda100",
-  "numTopics": 5,
-  "optimize": {
-    "steps": 1, // 10000
-    "optMethod": {
-      "sgd": {
-        "stepSize": 0.001
-      }
-    },
-    "estimator": {
-      "ELBO": {
-        "samples": 1,
-        "avgBaselines": false
-      }
-    }
-  }
-};
-
-
 // --------------------------------------------------------------------
 // Utils
 
@@ -111,6 +70,9 @@ var lda100 = function(data, vocabSize, numTopics, alpha, eta) {
 var models = {
   lda100: lda100
 };
+
+assert.ok(_.has(globalStore, 'settings'), 'Settings not found in globalStore.');
+var settings = globalStore.settings;
 
 var modelName = settings.modelName;
 assert.ok(_.has(models, modelName), 'Model not found.');
