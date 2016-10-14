@@ -1,19 +1,38 @@
+// var settings = {
+//   "modelName": "lda100",
+//   "numTopics": 5,
+//   "optimize": {
+//     "steps": 1, // 10000
+//     "optMethod": {
+//       "adam": {
+//         "stepSize": 0.01,
+//         "decayRate1": 0.9,
+//         "decayRate2": 0.999
+//       }
+//     },
+//     "estimator": {
+//       "ELBO": {
+//         "samples": 1,
+//         "avgBaselines": true
+//       }
+//     }
+//   }
+// };
+
 var settings = {
   "modelName": "lda100",
   "numTopics": 5,
   "optimize": {
     "steps": 1, // 10000
     "optMethod": {
-      "adam": {
-        "stepSize": 0.01,
-        "decayRate1": 0.9,
-        "decayRate2": 0.999
+      "sgd": {
+        "stepSize": 0.001
       }
     },
     "estimator": {
       "ELBO": {
         "samples": 1,
-        "avgBaselines": true
+        "avgBaselines": false
       }
     }
   }
