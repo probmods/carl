@@ -40,7 +40,12 @@ class Learner {
     this.histories[Date.now()] = history;
     const fn = `carl-${settings.appName}-${this.name}-histories.json`;
     const fp = path.join(settings.tempDirectory, fn);
-    fs.writeFileSync(fp, JSON.stringify(this.histories));
+    const data = {
+      appName: settings.appName,
+      settings: settings.app.learn.webppl,
+      histories: this.histories
+    };
+    fs.writeFileSync(fp, JSON.stringify(data));
   }
   
   updateParameters(params: ?Params, data: Object): Promise<Object> {
