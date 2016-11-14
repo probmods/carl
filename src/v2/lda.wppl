@@ -79,7 +79,7 @@ var model = function() {
 
 Optimize({
   model,
-  steps: 1000,
+  steps: 3000,
   optMethod: { adam: { stepSize: 0.01 }},
   estimator: {
     ELBO: {
