@@ -79,7 +79,7 @@ var model = function() {
 
 Optimize({
   model,
-  steps: 10,
+  steps: 1000,
   optMethod: { adam: { stepSize: 0.01 }},
   estimator: {
     ELBO: {
@@ -88,5 +88,5 @@ Optimize({
     }
   },
   logProgress: true,
-  logProgressFilename: '/tmp/lda-progress-mongo-2.csv'
+  logProgressFilename: '/tmp/lda-progress-mongo-' + process.pid + '.csv'
 });
