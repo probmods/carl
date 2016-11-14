@@ -5,7 +5,7 @@ Run multiple webppl processes (for LDA; using 7 processes here):
 
 I recommend using [dtach](http://dtach.sourceforge.net/) for this purpose:
 
-    dtach -c /tmp/lda.sock 
+    dtach -c /tmp/lda.sock ~/webppl/scripts/parallelRun lda.wppl 1 real-1 --require webppl-json
 
 Then you can detach from the processes via `ctrl-\` and resume later:
 
