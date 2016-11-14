@@ -39,3 +39,7 @@ Archive.zip
 
 # Yarn
 yarn.lock
+
+.RData
+.Rhistory
+notes/todo.txt

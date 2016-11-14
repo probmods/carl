@@ -1,0 +1,92 @@
+// --------------------------------------------------------------------
+// Utils
+
+var forEach = function(xs, f) {
+  map(function(i) {
+    return f(xs[i], i);
+  }, _.range(xs.length));
+  return;
+};
+
+
+// --------------------------------------------------------------------
+// Models
+
+var lda100 = function(data, vocabSize, numTopics, alpha, eta) {
+  var corpus = data.documentsAsCounts;
+
+  var topics = repeat(numTopics, function() {
+    return sample(Dirichlet({alpha: eta}));
+  });
+
+  mapData({data: corpus}, function(doc) {
+
+    var topicDist = sample(Dirichlet({alpha: alpha}));
+
+    forEach(doc, function(count, word) {
+
+      // Naive summing out.
+      // if (count > 0) {
+      //   var marginal = Enumerate(function() {
+      //     var z = sample(Discrete({ps: topicDist}));
+      //     var topic = topics[z];
+      //     return sample(Discrete({ps: topic}));
+      //   });
+
+      //   factor(count * marginal.score(word));
+      // }
+
+      // More efficient summing out of z by not "sampling" w.
+
+      // What I think we might want here is something which like
+      // Enumerate that explores all paths (through a thunk), but
+      // rather than building a histogram it just returns the (log of)
+      // sum of the probability of each path?
+
+      if (count > 0) {
+        // Sum over topic assignments/z.
+        var prob = sum(mapN(function(z) {
+          // In this particular model we could just index into
+          // topicDist/topics[z] to get at the log probability.
+          var zScore = Discrete({ps: topicDist}).score(z);
+          var wgivenzScore = Discrete({ps: topics[z]}).score(word);
+          return Math.exp(zScore + wgivenzScore);
+        }, numTopics));
+
+        factor(Math.log(prob) * count);
+      }
+
+    });
+
+  });
+
+  return topics;
+
+};
+
+
+// --------------------------------------------------------------------
+
+var data = json.read('cocolabAbstractCorpus.json');
+
+var model = function() {
+  var vocabSize = data.numWords;  // V
+  var numTopics = 5;  // K
+  var alpha = T.add(zeros([numTopics, 1]), 0.1);  // Parameter for prior on topic proportions.
+  var eta = T.add(zeros([vocabSize, 1]), 0.1);  // Parameter for prior on topics.  
+  return lda100(data, vocabSize, numTopics, alpha, eta);
+};
+
+Optimize({
+  model,
+  steps: 10,
+  optMethod: { adam: { stepSize: 0.01 }},
+  estimator: {
+    ELBO: {
+      samples: 1,
+      avgBaselines: true
+    }
+  },
+  logProgress: true,
+  logProgressFilename: '/tmp/lda-progress-mongo-2.csv'
+});

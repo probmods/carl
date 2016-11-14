@@ -13,16 +13,23 @@ var main = function() {
   var values = map(function(pair){ return pair[1]; }, pairs);
   var keys = map(function(pair){ return pair[0]; }, pairs);
   
-  var params = globalStore.params; // don't optimize the global parameters
+  var params = deserializeParams(globalStore.params); // don't optimize the global parameters
   var timeStep = makeTimeStep(params);
   
   var stateDists = map(
     function(observations){
       console.log('observations', observations);
+      console.log('params', params);
       return Infer({ method: 'optimize', samples: 100 }, function(){
-        var initialState = sampleInitialState(params);
-        return foldData(initialState, timeStep, observations);
-      });
+        // var x = paramScalar(0, 0.001, 'theta');
+        var x = params.theta;
+        return squish(gaussian(x, 1));
+        // return flip(x);
+        // return squish(gaussian(params.theta, 1));
+        // var initialState = sampleInitialState(params);
+        // return foldData(initialState, timeStep, observations);
+        // return initialState;
+      });        
     },
     values);
 
